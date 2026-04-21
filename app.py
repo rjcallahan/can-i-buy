@@ -123,12 +123,20 @@ def send_email(recipient: str, subject: str, body: str,
 
         msg.attach(html_part)
 
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_from, recipient, msg.as_string())
+        import ssl
+        if smtp_port == 465:
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=10, context=context) as server:
+                server.ehlo()
+                server.login(smtp_user, smtp_password)
+                server.sendmail(smtp_from, recipient, msg.as_string())
+        else:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(smtp_user, smtp_password)
+                server.sendmail(smtp_from, recipient, msg.as_string())
 
         print(f"Email sent to {recipient}: {subject}")
         return True
