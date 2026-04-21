@@ -327,7 +327,15 @@ class _Config:
 # ── Module-level singleton ────────────────────────────────────
 # Import this everywhere: from procurement_config import cfg
 
-cfg = _Config()
+try:
+    cfg = _Config()
+except FileNotFoundError as e:
+    import sys
+    print(f"WARNING: {e}", file=sys.stderr)
+    print("App starting with empty config — set CONFIG_PATH or place procurement_config.json in /data/", file=sys.stderr)
+    cfg = _Config.__new__(_Config)
+    cfg._path = _CONFIG_PATH
+    cfg._data = {}
 
 
 # ── Convenience re-exports ────────────────────────────────────
