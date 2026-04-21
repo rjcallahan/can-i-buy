@@ -29,9 +29,14 @@ import json
 import os
 from typing import Any
 
-_CONFIG_PATH = os.getenv("CONFIG_PATH") or os.path.join(
+_VOLUME_PATH = "/data/procurement_config.json"
+_REPO_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "procurement_config.json"
+)
+_CONFIG_PATH = (
+    os.getenv("CONFIG_PATH")
+    or (_VOLUME_PATH if os.path.exists(_VOLUME_PATH) else _REPO_PATH)
 )
 
 
@@ -50,8 +55,9 @@ class _Config:
     def _load(self):
         if not os.path.exists(self._path):
             raise FileNotFoundError(
-                f"procurement_config.json not found at {self._path}. "
-                f"Copy the template to your project root."
+                f"procurement_config.json not found. "
+                f"Checked volume path ({_VOLUME_PATH}) and repo path ({_REPO_PATH}). "
+                f"Ensure the file exists in at least one of these locations."
             )
         with open(self._path, encoding="utf-8") as f:
             self._data = json.load(f)
