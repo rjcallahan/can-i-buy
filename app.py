@@ -56,11 +56,10 @@ def delete_file_safe(filepath: str) -> bool:
 def send_email(recipient: str, subject: str, body: str,
                html: str | None = None) -> bool:
     """
-    Send an email via Resend API (HTTP-based, works on Railway).
-    Falls back to logging if RESEND_API_KEY is not set.
+    Send an email via Resend API.
     Returns True if sent successfully, False otherwise.
     """
-    import urllib.request
+    import requests as req_lib
 
     api_key        = os.getenv("RESEND_API_KEY")
     smtp_from      = os.getenv("SMTP_FROM", "")
@@ -74,36 +73,26 @@ def send_email(recipient: str, subject: str, body: str,
         print("SMTP_FROM not set — email logged only.")
         return False
 
-    from_addr = f"{smtp_from_name} <{smtp_from}>"
-
-    payload = json.dumps({
-        "from":    from_addr,
-        "to":      [recipient],
-        "subject": subject,
-        "text":    body,
-        "html":    html or body,
-    }).encode("utf-8")
-
-    req = urllib.request.Request(
-        "https://api.resend.com/emails",
-        data    = payload,
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type":  "application/json",
-        },
-        method  = "POST",
-    )
-
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            status = resp.status
-            body   = resp.read()
-        print(f"Resend response {status}: {body[:200]}")
+        resp = req_lib.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type":  "application/json",
+            },
+            json={
+                "from":    f"{smtp_from_name} <{smtp_from}>",
+                "to":      [recipient],
+                "subject": subject,
+                "text":    body,
+                "html":    html or body,
+            },
+            timeout=10,
+        )
+        print(f"Resend response {resp.status_code}: {resp.text[:200]}")
+        resp.raise_for_status()
         print(f"Email sent to {recipient}: {subject}")
         return True
-    except urllib.error.HTTPError as e:
-        print(f"Email send failed HTTP {e.code}: {e.read()[:200]}")
-        return False
     except Exception as e:
         print(f"Email send failed [{type(e).__name__}]: {e}")
         return False
