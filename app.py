@@ -2,10 +2,7 @@
 # app.py
 import os
 import json
-import smtplib
 from datetime import datetime
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from flask import (Flask, request, jsonify, send_from_directory,
                    redirect)
 from dotenv import load_dotenv
@@ -59,90 +56,56 @@ def delete_file_safe(filepath: str) -> bool:
 def send_email(recipient: str, subject: str, body: str,
                html: str | None = None) -> bool:
     """
-    Send an email via Zoho SMTP.
-    Accepts optional HTML version — falls back to plain text wrapper.
+    Send an email via Resend API (HTTP-based, works on Railway).
+    Falls back to logging if RESEND_API_KEY is not set.
     Returns True if sent successfully, False otherwise.
     """
-    mail_cfg       = cfg._get("mail")
-    smtp_host      = os.getenv("SMTP_HOST")      or mail_cfg.get("smtp_host", "smtp.zoho.com")
-    smtp_port      = int(os.getenv("SMTP_PORT")  or mail_cfg.get("smtp_port", 587))
-    smtp_user      = os.getenv("SMTP_USER")      or mail_cfg.get("smtp_user") or ""
-    smtp_password  = os.getenv("SMTP_PASSWORD")
-    smtp_from      = os.getenv("SMTP_FROM")      or mail_cfg.get("smtp_from") or smtp_user or ""
-    smtp_from_name = os.getenv("SMTP_FROM_NAME") or mail_cfg.get("smtp_from_name", "CAPA Procurement")
+    import urllib.request
 
-    if not smtp_user or not smtp_password:
-        print("SMTP not configured — email logged only.")
+    api_key        = os.getenv("RESEND_API_KEY")
+    smtp_from      = os.getenv("SMTP_FROM", "")
+    smtp_from_name = os.getenv("SMTP_FROM_NAME", "CAPA Procurement")
+
+    if not api_key:
+        print("RESEND_API_KEY not set — email logged only.")
         return False
 
     if not smtp_from:
-        print("SMTP_FROM not configured — email logged only.")
+        print("SMTP_FROM not set — email logged only.")
         return False
 
+    from_addr = f"{smtp_from_name} <{smtp_from}>"
+
+    payload = json.dumps({
+        "from":    from_addr,
+        "to":      [recipient],
+        "subject": subject,
+        "text":    body,
+        "html":    html or body,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data    = payload,
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type":  "application/json",
+        },
+        method  = "POST",
+    )
+
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"]    = f"{smtp_from_name} <{smtp_from}>"
-        msg["To"]      = recipient
-
-        # Plain text part
-        text_part = MIMEText(body, "plain")
-        msg.attach(text_part)
-
-        # HTML part
-        if html:
-            html_part = MIMEText(html, "html")
-        else:
-            # Simple fallback wrapper
-            simple_html = f"""<!DOCTYPE html>
-<html><body style="font-family:'Segoe UI',Arial,sans-serif;
-                   color:#222;max-width:700px;margin:0 auto;padding:20px">
-  <div style="background:#1F3864;padding:14px 24px;
-              border-radius:6px 6px 0 0">
-    <span style="color:#fff;font-size:18px;font-weight:700">
-      CAPA <span style="color:#7BAFD4">Consulting</span>
-    </span>
-    <span style="color:#cdd8e8;font-size:13px;margin-left:16px">
-      City of Palm Springs &mdash; Procurement Gateway
-    </span>
-  </div>
-  <div style="background:#fff;border:1px solid #e0e8f0;
-              border-top:none;padding:24px;
-              border-radius:0 0 6px 6px">
-    <pre style="font-family:'Segoe UI',Arial,sans-serif;
-                font-size:13px;line-height:1.7;
-                white-space:pre-wrap;margin:0">{body}</pre>
-  </div>
-  <div style="text-align:center;margin-top:14px;
-              font-size:11px;color:#aaa">
-    This is an automated message from the City of Palm Springs
-    Procurement Gateway. Please do not reply to this email.
-  </div>
-</body></html>"""
-            html_part = MIMEText(simple_html, "html")
-
-        msg.attach(html_part)
-
-        import ssl
-        if smtp_port == 465:
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=10, context=context) as server:
-                server.ehlo()
-                server.login(smtp_user, smtp_password)
-                server.sendmail(smtp_from, recipient, msg.as_string())
-        else:
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                server.login(smtp_user, smtp_password)
-                server.sendmail(smtp_from, recipient, msg.as_string())
-
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            status = resp.status
+            body   = resp.read()
+        print(f"Resend response {status}: {body[:200]}")
         print(f"Email sent to {recipient}: {subject}")
         return True
-
+    except urllib.error.HTTPError as e:
+        print(f"Email send failed HTTP {e.code}: {e.read()[:200]}")
+        return False
     except Exception as e:
-        print(f"Email send failed: {e}")
+        print(f"Email send failed [{type(e).__name__}]: {e}")
         return False
 
 
