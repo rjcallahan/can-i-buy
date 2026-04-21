@@ -32,6 +32,7 @@ from typing import Any
 _VOLUME_PATH = "/data/procurement_config.json"
 _REPO_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
+    "data",
     "procurement_config.json"
 )
 _CONFIG_PATH = (
@@ -53,6 +54,14 @@ class _Config:
         self._load()
 
     def _load(self):
+        # If volume path doesn't exist but repo copy does, bootstrap the volume
+        if not os.path.exists(self._path) and self._path == _VOLUME_PATH:
+            if os.path.exists(_REPO_PATH):
+                import shutil
+                os.makedirs(os.path.dirname(_VOLUME_PATH), exist_ok=True)
+                shutil.copy(_REPO_PATH, _VOLUME_PATH)
+                print(f"Bootstrapped config from repo to {_VOLUME_PATH}", flush=True)
+
         if not os.path.exists(self._path):
             raise FileNotFoundError(
                 f"procurement_config.json not found. "
