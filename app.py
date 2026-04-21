@@ -123,7 +123,7 @@ def send_email(recipient: str, subject: str, body: str,
 
         msg.attach(html_part)
 
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
             server.ehlo()
             server.starttls()
             server.ehlo()

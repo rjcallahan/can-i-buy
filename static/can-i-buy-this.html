@@ -967,17 +967,21 @@
             result:   (window._lastSsResult || {}).result   || {},
             filename: (window._lastSsResult || {}).filename || "sole source letter"
           };
+            var controller = new AbortController();
+          var timeout = setTimeout(() => controller.abort(), 15000);
           var res  = await fetch("/api/send-ss-report", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
           });
+          clearTimeout(timeout);
           var json = await res.json();
           if (!res.ok || json.error) throw new Error(json.error || "Send failed.");
           if (status) { status.textContent = "✅ Sent!"; status.style.color = "#1a7a4a"; status.style.display = "block"; }
           if (btn) btn.textContent = "Sent";
         } catch(e) {
-          if (status) { status.textContent = "⚠️ " + e.message; status.style.color = "#c0392b"; status.style.display = "block"; }
+          if (status) { status.textContent = "⚠️ " + (e.name === "AbortError" ? "Request timed out — SMTP may be unreachable on Railway." : e.message); status.style.color = "#c0392b"; status.style.display = "block"; }
           if (btn) { btn.disabled = false; btn.textContent = "Send"; }
         }
       }
