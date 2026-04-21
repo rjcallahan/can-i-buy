@@ -7,7 +7,7 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import (Flask, request, jsonify, send_from_directory,
-                   render_template, redirect)
+                   redirect)
 from dotenv import load_dotenv
 import anthropic
 from anthropic.types import TextBlock
@@ -859,7 +859,7 @@ def analyze():
 # ── Dashboard ────────────────────────────────────────────────
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard.html")
+    return redirect("/", code=302)
 
 
 @app.route("/api/dashboard/data")
@@ -904,8 +904,7 @@ def dashboard_data():
 # ── Request detail ───────────────────────────────────────────
 @app.route("/request/<int:request_id>")
 def request_detail(request_id):
-    return render_template("request_detail.html",
-                           request_id=request_id)
+    return redirect("/", code=302)
 
 
 @app.route("/api/request/<int:request_id>")
