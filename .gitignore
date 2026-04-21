@@ -1,0 +1,40 @@
+# Environment
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Database (local only — lives on Railway volume in production)
+procurement.db
+procurement.db-shm
+procurement.db-wal
+
+# ChromaDB (re-ingested on the volume after deploy)
+chroma_db/
+
+# Uploads (user files — live on Railway volume in production)
+uploads/
+
+# Dev notes (internal only)
+dev_notes/
+
+# Test documents
+Test Documents/
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Build artifacts
+*.pyc
+dist/
+build/

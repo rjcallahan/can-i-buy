@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CAPA — Can I Buy This?</title>
+    <link rel="stylesheet" href="/static/intake.css" />
+    <style>
+      .demo-badge {
+        display: inline-block;
+        background: #e97132;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 8px;
+        vertical-align: middle;
+        text-transform: uppercase;
+      }
+      .demo-note {
+        background: #fff8f0;
+        border-left: 3px solid #e97132;
+        padding: 10px 14px;
+        font-size: 13px;
+        color: #555;
+        margin-bottom: 20px;
+        border-radius: 0 4px 4px 0;
+      }
+      .start-over {
+        display: none;
+        margin-top: 16px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">CAPA <span>Consulting</span></div>
+      <div class="agency" style="display: none">
+        City of Palm Springs — Procurement Advisor
+      </div>
+      <div class="nav"></div>
+    </header>
+
+    <div class="page-wrap">
+      <div class="card" id="form-card">
+        <div class="card-header">
+          <span class="icon">🛒</span>
+          Can I Buy This?
+          <span class="demo-badge">Demo</span>
+        </div>
+        <div class="card-body">
+          <div class="demo-note">
+            Describe your purchase and get an instant policy check — no login or
+            formal submission required.
+          </div>
+
+          <form id="demo-form" novalidate>
+            <div class="form-grid">
+              <!-- What do you want to buy -->
+              <div class="field full">
+                <label
+                  >What do you want to buy? <span class="req">*</span></label
+                >
+                <input
+                  type="text"
+                  id="item_name"
+                  placeholder="e.g. Replacement tires for Fleet vehicle #14"
+                />
+                <div class="err-msg" id="err-item_name">Required</div>
+              </div>
+
+              <!-- Department -->
+              <div class="field">
+                <label>Department <span class="req">*</span></label>
+                <select id="department" onchange="onDepartmentChange()">
+                  <option value="">Select department</option>
+                </select>
+                <div class="err-msg" id="err-department">Required</div>
+              </div>
+
+              <!-- Item Type -->
+              <div class="field">
+                <label>Category <span class="req">*</span></label>
+                <select id="item_type" onchange="onItemTypeChange()">
+                  <option value="">Select category</option>
+                  <option value="supplies">Supplies / Materials</option>
+                  <option value="equipment">Equipment</option>
+                  <option value="it_equipment">IT Equipment</option>
+                  <option value="it_software">IT Software</option>
+                  <option value="maintenance_services">
+                    Maintenance &amp; Repair Services
+                  </option>
+                  <option value="professional_services">
+                    Professional Services
+                  </option>
+                  <option value="construction">
+                    Construction / Public Works
+                  </option>
+                  <option value="travel">Travel</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="err-msg" id="err-item_type">Required</div>
+              </div>
+
+              <!-- Amount -->
+              <div class="field">
+                <label>Estimated Cost ($) <span class="req">*</span></label>
+                <input
+                  type="number"
+                  id="amount"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  oninput="onAmountChange()"
+                />
+                <div class="amount-hint" id="amount-hint"></div>
+                <div class="err-msg" id="err-amount">Required</div>
+              </div>
+
+              <!-- Description -->
+              <div class="field full">
+                <label
+                  >Description / Business Justification
+                  <span class="req">*</span></label
+                >
+                <textarea
+                  id="description"
+                  placeholder="Describe what is needed and why it supports City operations."
+                ></textarea>
+                <div class="err-msg" id="err-description">Required</div>
+              </div>
+
+              <!-- Sole Source -->
+              <div class="field">
+                <label
+                  >Only one vendor can provide this?
+                  <span
+                    style="
+                      font-size: 11px;
+                      font-weight: 400;
+                      color: #777;
+                      display: block;
+                      margin-top: 2px;
+                    "
+                  >
+                    Stringent sole-source criteria will be applied
+                  </span>
+                </label>
+                <div class="toggle-group">
+                  <input
+                    type="radio"
+                    name="sole_source"
+                    id="ss-no"
+                    value="no"
+                    checked
+                    onchange="onSoleSourceChange()"
+                  />
+                  <label for="ss-no">No</label>
+                  <input
+                    type="radio"
+                    name="sole_source"
+                    id="ss-yes"
+                    value="yes"
+                    onchange="onSoleSourceChange()"
+                  />
+                  <label for="ss-yes">Yes</label>
+                </div>
+              </div>
+
+              <!-- FAA Governed -->
+              <div class="field" id="faa-field">
+                <label
+                  >FAA-governed purchase?
+                  <span
+                    style="
+                      font-size: 11px;
+                      font-weight: 400;
+                      color: #777;
+                      display: block;
+                      margin-top: 2px;
+                    "
+                  >
+                    AIP-funded or FAA-regulated airport purchases
+                  </span>
+                </label>
+                <div class="toggle-group">
+                  <input
+                    type="radio"
+                    name="faa_governed"
+                    id="faa-no"
+                    value="no"
+                    checked
+                  />
+                  <label for="faa-no">No</label>
+                  <input
+                    type="radio"
+                    name="faa_governed"
+                    id="faa-yes"
+                    value="yes"
+                  />
+                  <label for="faa-yes">Yes</label>
+                </div>
+              </div>
+
+              <!-- Sole Source justification (conditional) -->
+              <div
+                class="conditional full"
+                id="sole-source-fields"
+                style="display: none"
+              >
+                <div class="field full">
+                  <label
+                    >Sole source reason
+                    <span style="font-weight: 400; color: #777"
+                      >(optional)</span
+                    ></label
+                  >
+                  <textarea
+                    id="sole_source_justification"
+                    placeholder="Briefly describe why only one vendor can provide this. You will need to submit a formal sole source justification document with your request."
+                  ></textarea>
+                  <div class="err-msg" id="err-sole_source_justification">
+                    Required
+                  </div>
+                </div>
+
+                <!-- Sole source letter validator -->
+                <div class="field full" style="margin-top:4px">
+                  <label>Validate your sole source justification letter
+                    <span style="font-weight:400;color:#777">(optional — PDF)</span>
+                  </label>
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+                    <input type="file" id="ss-letter-file" accept=".pdf"
+                      style="flex:1;min-width:200px;font-size:13px;padding:6px 0"
+                      onchange="onSsFileChange()" />
+                    <button type="button" id="ss-validate-btn" onclick="validateSsLetter()"
+                      disabled
+                      style="padding:8px 18px;background:#2e5496;color:#fff;border:none;border-radius:6px;
+                             font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;opacity:0.5">
+                      Validate Letter
+                    </button>
+                  </div>
+                  <div id="ss-validate-loading" style="display:none;font-size:13px;color:#555;margin-top:8px">
+                    <span style="display:inline-block;width:14px;height:14px;border:2px solid #2e5496;
+                                 border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;
+                                 vertical-align:middle;margin-right:6px"></span>
+                    Analyzing letter…
+                  </div>
+                  <div id="ss-validate-result" style="display:none;margin-top:12px"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="submit-row" style="margin-top: 24px">
+              <button
+                type="button"
+                class="btn-submit"
+                id="submit-btn"
+                onclick="checkIt()"
+                style="
+                  display: inline-block;
+                  padding: 12px 28px;
+                  background: #1f3864;
+                  color: #fff;
+                  border: none;
+                  border-radius: 6px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  letter-spacing: 0.2px;
+                "
+              >
+                Check Purchase Policy
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div
+        id="loading"
+        style="display: none; text-align: center; padding: 40px"
+      >
+        <div class="spinner"></div>
+        <p style="color: #1f3864; margin-top: 16px; font-weight: 600">
+          Checking procurement policy…
+        </p>
+      </div>
+
+      <!-- Result panel -->
+      <div id="result-panel"></div>
+
+      <!-- Start over -->
+      <div class="start-over" id="start-over">
+        <button
+          type="button"
+          onclick="startOver()"
+          style="
+            display: inline-block;
+            padding: 10px 24px;
+            background: #fff;
+            color: #1f3864;
+            border: 1.5px solid #1f3864;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+          "
+        >
+          ← Check Another Purchase
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // ── Load departments ─────────────────────────────────────
+      var FALLBACK_DEPARTMENTS = [
+        "Airport","City Clerk","City Manager",
+        "Community & Economic Development","Engineering & Public Works",
+        "Finance","Fire Department","Human Resources",
+        "Information Technology","Library","Parks & Recreation",
+        "Police Department","Procurement","Utilities & Water Resources"
+      ];
+
+      function populateDepartments(list) {
+        var sel = document.getElementById("department");
+        list.forEach(function(d) {
+          var opt = document.createElement("option");
+          opt.value = d;
+          opt.textContent = d;
+          sel.appendChild(opt);
+        });
+      }
+
+      (async function loadDepartments() {
+        try {
+          const res = await fetch("/api/config/departments");
+          const data = await res.json();
+          var depts = (data.departments && data.departments.length)
+            ? data.departments : FALLBACK_DEPARTMENTS;
+          populateDepartments(depts);
+        } catch (e) {
+          console.warn("Departments API unavailable, using fallback:", e);
+          populateDepartments(FALLBACK_DEPARTMENTS);
+        }
+      })();
+
+      // ── Amount hint ──────────────────────────────────────────
+      const rules = [
+        { max: 2500, method: "Single Quote / P-Card (if eligible)" },
+        { max: 15000, method: "Single Quote required" },
+        { max: 75000, method: "Informal — 3 quotes required" },
+        { max: Infinity, method: "Formal Solicitation (RFP/RFQ)" },
+      ];
+
+      function onAmountChange() {
+        const amount = parseFloat(document.getElementById("amount").value) || 0;
+        const itemType = document.getElementById("item_type").value;
+        const hint = document.getElementById("amount-hint");
+        if (!amount) {
+          hint.textContent = "";
+          return;
+        }
+        const rule = rules.find((r) => amount <= r.max);
+        hint.textContent = rule ? `Likely method: ${rule.method}` : "";
+      }
+
+      function onItemTypeChange() {
+        onAmountChange();
+      }
+
+      function onDepartmentChange() {
+        var dept = document.getElementById("department").value;
+        if (dept === "Airport") {
+          document.getElementById("faa-yes").checked = true;
+        } else {
+          document.getElementById("faa-no").checked = true;
+        }
+      }
+
+      function onSoleSourceChange() {
+        const yes =
+          document.querySelector('input[name="sole_source"]:checked')?.value ===
+          "yes";
+        document.getElementById("sole-source-fields").style.display = yes
+          ? "block"
+          : "none";
+      }
+
+      // ── Helpers ──────────────────────────────────────────────
+      function getVal(id) {
+        return (document.getElementById(id)?.value || "").trim();
+      }
+
+      function getRadio(name) {
+        return (
+          document.querySelector(`input[name="${name}"]:checked`)?.value || "no"
+        );
+      }
+
+      function setErr(id, show) {
+        const el = document.getElementById(`err-${id}`);
+        if (el) el.style.display = show ? "block" : "none";
+        const input = document.getElementById(id);
+        if (input) input.classList.toggle("input-error", show);
+      }
+
+      // ── Validation ───────────────────────────────────────────
+      function validateForm() {
+        let ok = true;
+        [
+          "item_name",
+          "item_type",
+          "amount",
+          "description",
+          "department",
+        ].forEach((f) => {
+          const empty = !getVal(f);
+          setErr(f, empty);
+          if (empty) ok = false;
+        });
+
+        return ok;
+      }
+
+      // ── Submit ───────────────────────────────────────────────
+      async function checkIt() {
+        if (!validateForm()) return;
+
+        const data = {
+          demo: true,
+          requester_name: "Demo User",
+          requester_email: "demo@palmspringsca.gov",
+          item_name: getVal("item_name"),
+          description: getVal("description"),
+          department: getVal("department"),
+          item_type: getVal("item_type"),
+          amount: parseFloat(getVal("amount")) || 0,
+          sole_source: getRadio("sole_source"),
+          sole_source_justification: getVal("sole_source_justification"),
+          faa_governed: getRadio("faa_governed"),
+          attachments_list: [],
+        };
+
+        document.getElementById("form-card").style.display = "none";
+        document.getElementById("result-panel").style.display = "none";
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("submit-btn").disabled = true;
+
+        try {
+          const response = await fetch("/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          const result = await response.json();
+          if (result.error) throw new Error(result.error);
+          renderResult(data, result);
+        } catch (err) {
+          renderError(err.message);
+        } finally {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("submit-btn").disabled = false;
+        }
+      }
+
+      // ── Render result ────────────────────────────────────────
+      function renderResult(data, r) {
+        const panel = document.getElementById("result-panel");
+
+        // Set to true to show "Start a formal request" CTA at bottom of results
+        const SHOW_FORMAL_REQUEST = false;
+
+        const vc = {
+          APPROVED: { icon: "✅", css: "verdict-approved" },
+          RETURNED: { icon: "🔄", css: "verdict-returned" },
+          FLAGGED: { icon: "🚩", css: "verdict-flagged" },
+        }[r.verdict] || { icon: "🔄", css: "verdict-returned" };
+        const title = "Request Evaluation";
+
+        const missingHTML = "";
+
+        const flagsHTML = "";
+
+        const docsHTML = "";
+
+        const nextHTML = "";
+
+        const methodHTML = (() => {
+          const methods = r.valid_methods?.length
+            ? r.valid_methods
+            : r.procurement_method
+              ? [
+                  {
+                    method: r.procurement_method,
+                    description: "",
+                    documents_needed: [],
+                  },
+                ]
+              : [];
+          if (!methods.length) return "";
+          const rows = methods
+            .map(
+              (m) => `
+            <div style="border:1px solid #d0dae8;border-radius:6px;padding:12px 14px;margin-bottom:8px">
+              <div style="font-weight:700;color:#1f3864;font-size:14px;margin-bottom:4px">${m.method}</div>
+              ${m.description ? `<div style="font-size:13px;color:#444;margin-bottom:6px">${m.description}</div>` : ""}
+              ${
+                m.documents_needed?.length
+                  ? `
+                <div style="font-size:12px;color:#555">
+                  <strong>Documents needed:</strong> ${m.documents_needed.join(", ")}
+                </div>`
+                  : ""
+              }
+            </div>`,
+            )
+            .join("");
+          return `<div class="result-section" style="margin-top:16px">
+            <h3>Valid Procurement Path${methods.length > 1 ? "s" : ""}</h3>
+            ${rows}
+          </div>`;
+        })();
+
+        const approvalHTML = buildApprovalHTML(
+          r.approval_chain || computeApprovalChain(data.amount, data.item_type),
+        );
+
+        const faaHTML = (() => {
+          if (!r.faa_notes) return "";
+          return (
+            '<div class="result-section" style="margin-top:16px">' +
+            '<h3 style="display:flex;align-items:center;gap:6px">✈️ FAA Compliance Notes</h3>' +
+            '<div style="background:#f0f4ff;border:1px solid #c0cfe8;border-radius:6px;padding:12px 14px;font-size:13px;color:#333;line-height:1.6">' +
+            r.faa_notes +
+            "</div></div>"
+          );
+        })();
+
+        panel.innerHTML = `
+          <div class="card result-card">
+            <div class="card-header verdict-header ${vc.css}">
+              ${vc.icon} ${title}
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #e0e8f0">
+                <div style="font-size:17px;font-weight:700;color:#1f3864;margin-bottom:4px">
+                  ${data.item_name}
+                </div>
+                <div style="font-size:13px;color:#555">${data.description}</div>
+              </div>
+              <p class="result-summary">${r.summary || ""}</p>
+              ${methodHTML}${faaHTML}${approvalHTML}${missingHTML}${flagsHTML}${docsHTML}${nextHTML}
+              ${
+                SHOW_FORMAL_REQUEST
+                  ? `
+              <div class="demo-note" style="margin-top:20px">
+                This is a policy check only — nothing has been submitted.
+                Ready to proceed? <a href="/" style="color:#1f3864;font-weight:600">Start a formal request →</a>
+              </div>`
+                  : ""
+              }
+
+              <div id="send-report-section" style="margin-top:24px;padding-top:18px;border-top:1px solid #e0e8f0">
+                <div style="font-size:13px;font-weight:600;color:#1f3864;margin-bottom:8px">
+                  📧 Email this report
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
+                  <div style="flex:1;min-width:220px">
+                    <input type="email" id="report-email"
+                      placeholder="you@palmspringsca.gov"
+                      style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #c8d6e5;
+                             border-radius:6px;font-size:14px;outline:none;"
+                      oninput="clearReportEmailError()"
+                    />
+                    <div id="report-email-err" style="display:none;font-size:12px;color:#c0392b;margin-top:4px"></div>
+                  </div>
+                  <button type="button" id="send-report-btn" onclick="sendReport()"
+                    style="padding:9px 20px;background:#1f3864;color:#fff;border:none;border-radius:6px;
+                           font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                    Send me this report
+                  </button>
+                </div>
+                <div id="report-send-status" style="display:none;font-size:13px;margin-top:8px"></div>
+              </div>
+            </div>
+          </div>`;
+
+        // store result data for the send function
+        window._lastReportData = { data, result: r };
+
+        panel.style.display = "block";
+        document.getElementById("start-over").style.display = "block";
+        panel.scrollIntoView({ behavior: "smooth" });
+      }
+
+      function renderError(msg) {
+        const panel = document.getElementById("result-panel");
+        panel.innerHTML = `
+          <div class="card result-card">
+            <div class="card-header verdict-header verdict-returned">
+              ⚠️ Something went wrong
+            </div>
+            <div class="card-body">
+              <p>${msg}</p>
+            </div>
+          </div>`;
+        panel.style.display = "block";
+        document.getElementById("start-over").style.display = "block";
+      }
+
+      // ── Approval chain computation ────────────────────────────
+      // Mirrors procurement_config.json signing_authority levels
+      var SIGNING_LEVELS = [
+        {
+          role: "director",
+          label: "Department Director",
+          nonPublicMax: 25000,
+          publicMax: 60000,
+        },
+        {
+          role: "acm",
+          label: "Assistant / Deputy City Manager",
+          nonPublicMax: 50000,
+          publicMax: 60000,
+        },
+        {
+          role: "city_manager",
+          label: "City Manager",
+          nonPublicMax: 150000,
+          publicMax: 220000,
+        },
+        {
+          role: "city_council",
+          label: "City Council",
+          nonPublicMax: 1e9,
+          publicMax: 1e9,
+        },
+      ];
+      var IT_TYPES = ["it_equipment", "it_software"];
+
+      function computeApprovalChain(amount, itemType) {
+        amount = parseFloat(amount) || 0;
+        var isPublic = itemType === "construction";
+        var maxKey = isPublic ? "publicMax" : "nonPublicMax";
+        var reqIdx = SIGNING_LEVELS.length - 1;
+        for (var i = 0; i < SIGNING_LEVELS.length; i++) {
+          if (amount <= SIGNING_LEVELS[i][maxKey]) {
+            reqIdx = i;
+            break;
+          }
+        }
+        var isIT = IT_TYPES.indexOf(itemType) !== -1;
+        var deptHead = isIT
+          ? { role: "it_director", label: "IT Director", note: "" }
+          : { role: "director", label: "Department Director", note: "" };
+
+        if (reqIdx === 0) {
+          return [
+            {
+              role: deptHead.role,
+              label: deptHead.label,
+              note: deptHead.note,
+              approves: true,
+            },
+          ];
+        }
+        return [
+          {
+            role: deptHead.role,
+            label: deptHead.label,
+            note: deptHead.note,
+            approves: false,
+          },
+          {
+            role: SIGNING_LEVELS[reqIdx].role,
+            label: SIGNING_LEVELS[reqIdx].label,
+            note: "",
+            approves: true,
+          },
+        ];
+      }
+
+      // ── Approval chain renderer ───────────────────────────────
+      function buildApprovalHTML(chain) {
+        if (!chain || !chain.length) return "";
+        var steps = "";
+        for (var i = 0; i < chain.length; i++) {
+          var step = chain[i];
+          var isLast = i === chain.length - 1;
+          var circleBg = isLast ? "#1f3864" : "#e8eef6";
+          var circleColor = isLast ? "#fff" : "#1f3864";
+          var circleBorder = isLast ? "#1f3864" : "#c8d6e5";
+          var labelWeight = isLast ? "700" : "500";
+          var labelColor = isLast ? "#1f3864" : "#444";
+          var stepNote = step.note
+            ? '<div style="font-size:11px;color:#888;font-style:italic;margin-top:1px">' +
+              step.note +
+              "</div>"
+            : "";
+          var subLabel = isLast
+            ? '<div style="font-size:11px;color:#1a7a4a;font-weight:600;margin-top:1px">Signs contract to authorize PO</div>'
+            : '<div style="font-size:11px;color:#777;margin-top:1px">Approves purchase</div>';
+          var connector = !isLast
+            ? '<div style="width:2px;height:14px;background:#c8d6e5;margin:2px auto"></div>'
+            : "";
+          var pb = isLast ? "0" : "14px";
+          steps +=
+            '<div style="display:flex;align-items:center;gap:10px">' +
+            '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">' +
+            '<div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;' +
+            "justify-content:center;font-size:12px;font-weight:700;" +
+            "background:" +
+            circleBg +
+            ";color:" +
+            circleColor +
+            ";" +
+            "border:2px solid " +
+            circleBorder +
+            '">' +
+            (i + 1) +
+            "</div>" +
+            connector +
+            "</div>" +
+            '<div style="padding-bottom:' +
+            pb +
+            '">' +
+            '<div style="font-size:13px;font-weight:' +
+            labelWeight +
+            ";color:" +
+            labelColor +
+            '">' +
+            step.label +
+            "</div>" +
+            subLabel +
+            stepNote +
+            "</div>" +
+            "</div>";
+        }
+        return (
+          '<div class="result-section" style="margin-top:16px">' +
+          "<h3>Contract Approval Path</h3>" +
+          '<div style="font-size:12px;color:#666;margin-bottom:10px">Once submitted, Procurement will validate your quotes, generate a contract, and route it through the following levels for signature before a PO is issued.</div>' +
+          '<div style="border:1px solid #d0dae8;border-radius:6px;padding:14px 16px">' +
+          steps +
+          "</div></div>"
+        );
+      }
+
+      // ── Send report ──────────────────────────────────────────
+      function clearReportEmailError() {
+        const err = document.getElementById("report-email-err");
+        const inp = document.getElementById("report-email");
+        if (err) err.style.display = "none";
+        if (inp) inp.style.borderColor = "#c8d6e5";
+      }
+
+      function showReportEmailError(msg) {
+        const err = document.getElementById("report-email-err");
+        const inp = document.getElementById("report-email");
+        if (err) {
+          err.textContent = msg;
+          err.style.display = "block";
+        }
+        if (inp) inp.style.borderColor = "#c0392b";
+      }
+
+      async function sendReport() {
+        const emailInput = document.getElementById("report-email");
+        const btn = document.getElementById("send-report-btn");
+        const status = document.getElementById("report-send-status");
+        const email = (emailInput?.value || "").trim().toLowerCase();
+
+        // Validate format
+        const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRe.test(email)) {
+          showReportEmailError("Please enter a valid email address.");
+          return;
+        }
+        // Validate domain
+        const allowed = ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"];
+        if (!email.endsWith("@palmspringsca.gov") && !allowed.includes(email)) {
+          showReportEmailError("Must be a @palmspringsca.gov address.");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Sending…";
+        status.style.display = "none";
+
+        try {
+          const payload = {
+            email,
+            ...(window._lastReportData || {}),
+          };
+          const res = await fetch("/api/send-report", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const json = await res.json();
+          if (!res.ok || json.error)
+            throw new Error(json.error || "Send failed.");
+          status.textContent = "✅ Report sent!";
+          status.style.color = "#1a7a4a";
+          status.style.display = "block";
+          btn.textContent = "Sent";
+        } catch (e) {
+          status.textContent = "⚠️ " + e.message;
+          status.style.color = "#c0392b";
+          status.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Send me this report";
+        }
+      }
+
+      // ── Sole source letter validator ─────────────────────────
+      function onSsFileChange() {
+        var f = document.getElementById("ss-letter-file");
+        var btn = document.getElementById("ss-validate-btn");
+        var hasFile = f && f.files && f.files.length > 0;
+        btn.disabled = !hasFile;
+        btn.style.opacity = hasFile ? "1" : "0.5";
+        btn.style.cursor = hasFile ? "pointer" : "default";
+        // Clear previous result
+        document.getElementById("ss-validate-result").style.display = "none";
+      }
+
+      async function validateSsLetter() {
+        var fileInput = document.getElementById("ss-letter-file");
+        var btn = document.getElementById("ss-validate-btn");
+        var loading = document.getElementById("ss-validate-loading");
+        var resultDiv = document.getElementById("ss-validate-result");
+
+        if (!fileInput.files || !fileInput.files.length) return;
+
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        loading.style.display = "block";
+        resultDiv.style.display = "none";
+
+        var formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        try {
+          var res = await fetch("/api/analyze-sole-source", {
+            method: "POST",
+            body: formData
+          });
+          var r = await res.json();
+          if (!res.ok || r.error) throw new Error(r.error || "Analysis failed.");
+          window._lastSsResult = { result: r, filename: fileInput.files[0].name };
+          resultDiv.innerHTML = buildSsResultHTML(r);
+          resultDiv.style.display = "block";
+        } catch (e) {
+          resultDiv.innerHTML = '<div style="color:#c0392b;font-size:13px">⚠️ ' + e.message + "</div>";
+          resultDiv.style.display = "block";
+        } finally {
+          loading.style.display = "none";
+          btn.disabled = false;
+          btn.style.opacity = "1";
+        }
+      }
+
+      function buildSsResultHTML(r) {
+        var strengthColors = { strong: "#1a7a4a", adequate: "#e97132", weak: "#c0392b" };
+        var strengthBg = { strong: "#edfaf3", adequate: "#fff8f0", weak: "#fdf2f2" };
+        var strengthIcons = { strong: "✅", adequate: "⚠️", weak: "❌" };
+        var s = (r.strength || "weak").toLowerCase();
+        var color = strengthColors[s] || "#555";
+        var bg = strengthBg[s] || "#f9f9f9";
+        var icon = strengthIcons[s] || "⚠️";
+
+        var statusColors = { pass: "#1a7a4a", partial: "#c07000", fail: "#c0392b", not_applicable: "#888" };
+        var statusLabels = { pass: "✓ Supported", partial: "~ Partial", fail: "✗ Missing", not_applicable: "— N/A" };
+
+        var checksHTML = "";
+        (r.checks || []).forEach(function(c) {
+          var sc = statusColors[c.status] || "#555";
+          var sl = statusLabels[c.status] || c.status;
+          checksHTML +=
+            '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #eee;font-size:12px">' +
+            '<div style="flex:0 0 90px;color:' + sc + ';font-weight:600">' + sl + '</div>' +
+            '<div><div style="font-weight:600;color:#333">' + c.criterion + '</div>' +
+            '<div style="color:#555;margin-top:2px">' + (c.note || "") + '</div></div>' +
+            '</div>';
+        });
+
+        var flagsHTML = "";
+        if (r.flags && r.flags.length) {
+          flagsHTML = '<div style="margin-top:10px">' +
+            '<div style="font-size:12px;font-weight:700;color:#c0392b;margin-bottom:4px">Issues to address:</div>';
+          r.flags.forEach(function(f) {
+            flagsHTML += '<div style="font-size:12px;color:#c0392b;padding:2px 0">• ' + f + '</div>';
+          });
+          flagsHTML += '</div>';
+        }
+
+        var submitBadge = r.ready_to_submit
+          ? '<span style="background:#edfaf3;color:#1a7a4a;border:1px solid #a8dfc0;border-radius:10px;' +
+            'font-size:11px;font-weight:700;padding:2px 9px">Ready to submit</span>'
+          : '<span style="background:#fdf2f2;color:#c0392b;border:1px solid #f0b8b8;border-radius:10px;' +
+            'font-size:11px;font-weight:700;padding:2px 9px">Needs strengthening</span>';
+
+        return '<div style="border:1px solid #d0dae8;border-radius:6px;overflow:hidden">' +
+          '<div style="background:' + bg + ';padding:10px 14px;display:flex;align-items:center;justify-content:space-between">' +
+          '<div style="font-weight:700;color:' + color + ';font-size:13px">' + icon + ' Letter strength: ' + s.charAt(0).toUpperCase() + s.slice(1) + '</div>' +
+          submitBadge +
+          '</div>' +
+          '<div style="padding:12px 14px">' +
+          '<div style="font-size:13px;color:#333;margin-bottom:10px">' + (r.recommendation || "") + '</div>' +
+          checksHTML +
+          flagsHTML +
+          '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #e8eef6">' +
+          '<div style="font-size:12px;font-weight:600;color:#1f3864;margin-bottom:6px">📧 Email this analysis</div>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+          '<input type="email" id="ss-email" placeholder="you@palmspringsca.gov" oninput="clearSsEmailErr()"' +
+          ' style="flex:1;min-width:200px;padding:7px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;outline:none" />' +
+          '<button type="button" onclick="sendSsReport()"' +
+          ' style="padding:7px 16px;background:#2e5496;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap"' +
+          ' id="ss-send-btn">Send</button>' +
+          '</div>' +
+          '<div id="ss-email-err" style="display:none;font-size:12px;color:#c0392b;margin-top:4px"></div>' +
+          '<div id="ss-send-status" style="display:none;font-size:12px;margin-top:6px"></div>' +
+          '</div>' +
+          '</div></div>';
+      }
+
+      // ── Send sole source report ───────────────────────────────
+      function clearSsEmailErr() {
+        var e = document.getElementById("ss-email-err");
+        var i = document.getElementById("ss-email");
+        if (e) e.style.display = "none";
+        if (i) i.style.borderColor = "#c8d6e5";
+      }
+
+      async function sendSsReport() {
+        var emailEl  = document.getElementById("ss-email");
+        var btn      = document.getElementById("ss-send-btn");
+        var status   = document.getElementById("ss-send-status");
+        var errEl    = document.getElementById("ss-email-err");
+        var email    = (emailEl ? emailEl.value : "").trim().toLowerCase();
+        var emailRe  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        var allowed  = ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"];
+
+        if (!emailRe.test(email)) {
+          if (errEl) { errEl.textContent = "Enter a valid email."; errEl.style.display = "block"; }
+          if (emailEl) emailEl.style.borderColor = "#c0392b";
+          return;
+        }
+        if (!email.endsWith("@palmspringsca.gov") && !allowed.includes(email)) {
+          if (errEl) { errEl.textContent = "Must be a @palmspringsca.gov address."; errEl.style.display = "block"; }
+          if (emailEl) emailEl.style.borderColor = "#c0392b";
+          return;
+        }
+
+        if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
+        if (status) status.style.display = "none";
+
+        try {
+          var payload = {
+            email: email,
+            result:   (window._lastSsResult || {}).result   || {},
+            filename: (window._lastSsResult || {}).filename || "sole source letter"
+          };
+          var res  = await fetch("/api/send-ss-report", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          var json = await res.json();
+          if (!res.ok || json.error) throw new Error(json.error || "Send failed.");
+          if (status) { status.textContent = "✅ Sent!"; status.style.color = "#1a7a4a"; status.style.display = "block"; }
+          if (btn) btn.textContent = "Sent";
+        } catch(e) {
+          if (status) { status.textContent = "⚠️ " + e.message; status.style.color = "#c0392b"; status.style.display = "block"; }
+          if (btn) { btn.disabled = false; btn.textContent = "Send"; }
+        }
+      }
+
+      function startOver() {
+        document.getElementById("item_name").value = "";
+        document.getElementById("item_type").value = "";
+        document.getElementById("amount").value = "";
+        document.getElementById("description").value = "";
+        document.getElementById("department").value = "";
+        document.getElementById("amount-hint").textContent = "";
+        document.getElementById("sole_source_justification").value = "";
+
+        // Reset radios
+        document.getElementById("ss-no").checked = true;
+        document.getElementById("faa-no").checked = true;
+
+        // Hide conditional sections
+        document.getElementById("sole-source-fields").style.display = "none";
+
+        // Clear sole source validator
+        var ssFile = document.getElementById("ss-letter-file");
+        if (ssFile) ssFile.value = "";
+        var ssBtn = document.getElementById("ss-validate-btn");
+        if (ssBtn) { ssBtn.disabled = true; ssBtn.style.opacity = "0.5"; }
+        var ssResult = document.getElementById("ss-validate-result");
+        if (ssResult) ssResult.style.display = "none";
+
+        // Clear validation errors
+        ["item_name","item_type","amount","description","department"].forEach(function(f) {
+          setErr(f, false);
+        });
+
+        // Show form, hide result
+        document.getElementById("form-card").style.display = "block";
+        document.getElementById("result-panel").style.display = "none";
+        document.getElementById("result-panel").innerHTML = "";
+        document.getElementById("start-over").style.display = "none";
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    </script>
+  </body>
+</html>

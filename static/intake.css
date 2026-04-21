@@ -1,0 +1,323 @@
+/* intake.css — City of Palm Springs Procurement Gateway */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  color: #222;
+  background: #f0f4f8;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+header {
+  background: #1f3864;
+  color: #fff;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #fff;
+}
+
+.brand span {
+  color: #7bafd4;
+}
+
+.agency {
+  font-size: 13px;
+  color: #cdd8e8;
+  flex: 1;
+}
+
+.nav {
+  margin-left: auto;
+}
+
+/* ── Page layout ──────────────────────────────────────────── */
+.page-wrap {
+  max-width: 780px;
+  margin: 32px auto;
+  padding: 0 16px 60px;
+}
+
+/* ── Card ─────────────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border: 1px solid #d8e3ee;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31,56,100,0.07);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: #1f3864;
+  color: #fff;
+  padding: 14px 20px;
+  font-size: 17px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header .icon {
+  font-size: 20px;
+}
+
+.card-body {
+  padding: 22px 24px;
+}
+
+/* ── Verdict header variants ──────────────────────────────── */
+.verdict-header {
+  font-size: 16px;
+}
+
+.verdict-approved { background: #1a7a4a; }
+.verdict-flagged  { background: #c07000; }
+.verdict-returned { background: #2e5496; }
+
+/* ── Form grid ────────────────────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field.full,
+.conditional.full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f3864;
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field input[type="email"],
+.field select,
+.field textarea {
+  padding: 9px 11px;
+  border: 1.5px solid #c8d6e5;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #222;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  width: 100%;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #2e5496;
+}
+
+.field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.field select {
+  cursor: pointer;
+}
+
+.input-error {
+  border-color: #c0392b !important;
+}
+
+/* ── Error messages ───────────────────────────────────────── */
+.err-msg {
+  display: none;
+  font-size: 12px;
+  color: #c0392b;
+  margin-top: 2px;
+}
+
+.req {
+  color: #c0392b;
+}
+
+/* ── Amount hint ──────────────────────────────────────────── */
+.amount-hint {
+  font-size: 12px;
+  color: #2e5496;
+  min-height: 16px;
+  margin-top: 2px;
+}
+
+/* ── Toggle group (radio buttons) ────────────────────────── */
+.toggle-group {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid #c8d6e5;
+  border-radius: 6px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.toggle-group input[type="radio"] {
+  display: none;
+}
+
+.toggle-group label {
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
+  background: #f8fafc;
+  border-right: 1px solid #c8d6e5;
+  transition: background 0.12s, color 0.12s;
+  user-select: none;
+}
+
+.toggle-group label:last-child {
+  border-right: none;
+}
+
+.toggle-group input[type="radio"]:checked + label {
+  background: #1f3864;
+  color: #fff;
+}
+
+/* ── Conditional sections ─────────────────────────────────── */
+.conditional {
+  border-left: 3px solid #2e5496;
+  padding-left: 14px;
+  background: #f6f9fd;
+  border-radius: 0 6px 6px 0;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-right: 12px;
+}
+
+/* ── Submit row ───────────────────────────────────────────── */
+.submit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-submit {
+  padding: 12px 28px;
+  background: #1f3864;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition: background 0.15s;
+}
+
+.btn-submit:hover { background: #2e5496; }
+.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Result card ──────────────────────────────────────────── */
+.result-card { margin-top: 8px; }
+
+.result-summary {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.result-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #e8eef6;
+}
+
+.result-section h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f3864;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0 0 10px;
+}
+
+/* ── Spinner ──────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 4px solid #d0dae8;
+  border-top-color: #1f3864;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+/* ── Demo note ────────────────────────────────────────────── */
+.demo-note {
+  background: #fff8f0;
+  border-left: 3px solid #e97132;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 20px;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ── Demo badge ───────────────────────────────────────────── */
+.demo-badge {
+  display: inline-block;
+  background: #e97132;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+/* ── Start over ───────────────────────────────────────────── */
+.start-over {
+  display: none;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .field.full,
+  .conditional.full {
+    grid-column: 1;
+  }
+  .page-wrap {
+    padding: 0 10px 40px;
+  }
+}
