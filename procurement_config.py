@@ -343,11 +343,11 @@ except FileNotFoundError as e:
 #   from procurement_config import BID_THRESHOLDS
 # work without changes during the migration period.
 
-BID_THRESHOLDS          = cfg.all_bid_thresholds()
-SIGNING_AUTHORITY       = cfg.signing_authority_levels()
-HR_REVIEW_KEYWORDS      = cfg.hr_review_keywords()
-MAINTENANCE_KEYWORDS    = cfg.maintenance_redirect_keywords()
-PCARD_PROHIBITED        = cfg.pcard_prohibited_types()
+BID_THRESHOLDS       = cfg.all_bid_thresholds()       if cfg._data else {}
+SIGNING_AUTHORITY    = cfg.signing_authority_levels()  if cfg._data else []
+HR_REVIEW_KEYWORDS   = cfg.hr_review_keywords()        if cfg._data else []
+MAINTENANCE_KEYWORDS = cfg.maintenance_redirect_keywords() if cfg._data else []
+PCARD_PROHIBITED     = cfg.pcard_prohibited_types()    if cfg._data else []
 
 
 if __name__ == "__main__":
