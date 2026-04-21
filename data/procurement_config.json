@@ -1,0 +1,383 @@
+{
+  "_comment": "City of Palm Springs \u2014 Procurement Helper Configuration",
+  "_last_updated": "2026-03-26",
+  "_note": "All dollar amounts are in USD. Edit this file to update thresholds city-wide.",
+  "bid_thresholds": {
+    "_comment": "Amounts AT OR ABOVE these values require competitive bidding",
+    "supplies": 75000,
+    "equipment": 75000,
+    "it_equipment": 75000,
+    "it_software": 75000,
+    "maintenance_services": 75000,
+    "professional_services": 75000,
+    "construction": 220000,
+    "other": 75000,
+    "travel": 999999999
+  },
+  "procurement_methods": {
+    "_comment": "Threshold tiers defining the required procurement method per item type",
+    "supplies": [
+      {
+        "max": 15000,
+        "method": "Single Quote / P-Card",
+        "process": "One quote or negotiated purchase. P-Card eligible if under card limit."
+      },
+      {
+        "max": 74999.99,
+        "method": "Informal Process \u2014 3 Quotes",
+        "process": "Obtain minimum three written quotes. No formal bid required."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Competitive Bid (IFB/RFP)",
+        "process": "Formal competitive bidding process required. Procurement will manage."
+      }
+    ],
+    "equipment": [
+      {
+        "max": 15000,
+        "method": "Single Quote / P-Card",
+        "process": "One quote or negotiated purchase."
+      },
+      {
+        "max": 74999.99,
+        "method": "Informal Process \u2014 3 Quotes",
+        "process": "Obtain minimum three written quotes."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Competitive Bid (IFB/RFP)",
+        "process": "Formal competitive bidding required. Procurement will manage."
+      }
+    ],
+    "it_equipment": [
+      {
+        "max": 15000,
+        "method": "Single Quote",
+        "process": "Note: IT equipment is prohibited on P-Card."
+      },
+      {
+        "max": 74999.99,
+        "method": "Informal Process \u2014 3 Quotes",
+        "process": "Three written quotes. IT Director approval required."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Competitive Bid (IFB/RFP)",
+        "process": "Formal competitive bidding required. IT and Procurement approval."
+      }
+    ],
+    "it_software": [
+      {
+        "max": 15000,
+        "method": "Single Quote",
+        "process": "Note: IT software is prohibited on P-Card."
+      },
+      {
+        "max": 74999.99,
+        "method": "Informal Process \u2014 3 Quotes",
+        "process": "Three quotes required. IT Director approval."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Competitive Bid (IFB/RFP)",
+        "process": "Formal process required. Procurement will manage."
+      }
+    ],
+    "maintenance_services": [
+      {
+        "max": 15000,
+        "method": "Single Quote / P-Card",
+        "process": "One quote or negotiated purchase. P-Card eligible if under card limit. No insurance certificate required for routine maintenance."
+      },
+      {
+        "max": 74999.99,
+        "method": "Informal Process \u2014 3 Quotes",
+        "process": "Three written quotes required. Vendor quote and basic service agreement sufficient."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Competitive Bid (IFB/RFP)",
+        "process": "Formal competitive bidding required. Procurement will manage."
+      }
+    ],
+    "professional_services": [
+      {
+        "max": 15000,
+        "method": "Single Quote",
+        "process": "One quote. Service contract and insurance certificate required."
+      },
+      {
+        "max": 74999.99,
+        "method": "Informal Process \u2014 3 Quotes",
+        "process": "Three quotes. Contract and insurance required. Not P-Card eligible."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Competitive Bid (RFP/RFQ)",
+        "process": "Formal qualifications-based selection. Procurement will manage."
+      }
+    ],
+    "construction": [
+      {
+        "max": 74999.99,
+        "method": "Force Account or Negotiated Contract",
+        "process": "City forces or negotiated contract allowed."
+      },
+      {
+        "max": 219999.99,
+        "method": "Informal Public Project Bidding",
+        "process": "Informal bidding procedures per California UPCCAA."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Public Project Bidding (IFB)",
+        "process": "Full formal bidding required per Public Contract Code."
+      }
+    ],
+    "travel": [
+      {
+        "max": 999999999,
+        "method": "Travel Policy",
+        "process": "City Manager approval required for P-Card travel use. Per diem limits apply."
+      }
+    ],
+    "other": [
+      {
+        "max": 15000,
+        "method": "Single Quote",
+        "process": "One quote or negotiated purchase."
+      },
+      {
+        "max": 74999.99,
+        "method": "Informal Process \u2014 3 Quotes",
+        "process": "Three quotes required."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Competitive Bid",
+        "process": "Formal competitive process required. Procurement will manage."
+      }
+    ]
+  },
+  "signing_authority": {
+    "_comment": "Approval required based on contract amount and project type",
+    "_note": "non_public = standard contracts, public = public works / construction",
+    "levels": [
+      {
+        "role": "director",
+        "label": "Department Director",
+        "non_public_max": 25000,
+        "public_max": 25000
+      },
+      {
+        "role": "acm",
+        "label": "Assistant / Deputy City Manager",
+        "non_public_max": 50000,
+        "public_max": 60000
+      },
+      {
+        "role": "city_manager",
+        "label": "City Manager",
+        "non_public_max": 150000,
+        "public_max": 220000
+      },
+      {
+        "role": "city_council",
+        "label": "City Council",
+        "non_public_max": 999999999,
+        "public_max": 999999999
+      }
+    ]
+  },
+  "attorney_review": {
+    "_comment": "Controls when City Attorney review is required",
+    "always_required": true,
+    "phase2_app_generated_threshold": null,
+    "_note": "phase2_app_generated_threshold: set a dollar amount when phase 2 is built to bypass attorney review for app-generated contracts below that amount. null = always required."
+  },
+  "pcard": {
+    "_comment": "P-Card rules",
+    "prohibited_item_types": [
+      "it_equipment",
+      "it_software",
+      "professional_services",
+      "construction"
+    ],
+    "single_transaction_limit": 2500,
+    "_note": "single_transaction_limit is the default per-transaction cap. Individual card limits may differ."
+  },
+  "federal_funds": {
+    "_comment": "Micro-purchase thresholds when federal funds are involved (2 CFR 200.320)",
+    "micro_purchase_construction": 2000,
+    "micro_purchase_non_construction": 3000
+  },
+  "sla_days": {
+    "_comment": "Default SLA in business days per workflow stage. 0 = no SLA.",
+    "draft": 0,
+    "procurement_review": 2,
+    "hr_union_review": 45,
+    "it_review": 5,
+    "engineering_review": 5,
+    "attorney_review": 10,
+    "spc_review": 5,
+    "contract_development": 2,
+    "bid_development": 10,
+    "bid_process": 30,
+    "bid_award": 5,
+    "bid_contract": 2,
+    "director_approval": 5,
+    "acm_approval": 5,
+    "manager_approval": 5,
+    "council_approval": 30,
+    "complete": 0,
+    "rejected": 0,
+    "returned_to_requester": 0
+  },
+  "rfq_document_thresholds": {
+    "_comment": "Which document type is appropriate at which dollar amount",
+    "iqr_max": 74999.99,
+    "rfp_min": 75000
+  },
+  "hr_review_keywords": [
+    "training",
+    "instruction",
+    "coaching",
+    "staffing",
+    "labor",
+    "grounds",
+    "landscaping",
+    "janitorial",
+    "cleaning service",
+    "security guard",
+    "guard service",
+    "driver",
+    "custodial",
+    "k9",
+    "canine",
+    "dog training",
+    "inspection service",
+    "maintenance contract",
+    "facility management",
+    "parking enforcement"
+  ],
+  "maintenance_redirect_keywords": [
+    "fix broken door",
+    "fix broken window",
+    "replace light bulb",
+    "replace ceiling tile",
+    "patch roof",
+    "patch wall",
+    "repair plumbing",
+    "unclog drain",
+    "hvac filter",
+    "replace faucet",
+    "electrical outlet repair",
+    "floor repair",
+    "replace carpet",
+    "paint wall",
+    "paint room",
+    "building repair",
+    "facility repair"
+  ],
+  "mail": {
+    "_comment": "Outbound email (Zoho SMTP). Set smtp_password via SMTP_PASSWORD env var \u2014 never store passwords here.",
+    "smtp_host": "smtp.zoho.com",
+    "smtp_port": 587,
+    "smtp_user": "",
+    "smtp_from": "",
+    "smtp_from_name": "Procurement"
+  },
+  "faa": {
+    "_comment": "FAA-governed purchase rules \u2014 applies to AIP-funded or FAA-regulated airport purchases",
+    "micro_purchase_threshold": 10000,
+    "simplified_acquisition_threshold": 250000,
+    "davis_bacon_construction_threshold": 2000,
+    "requirements": {
+      "buy_american": "Buy American provisions apply (49 U.S.C. \u00a7 50101). Materials and equipment must be produced in the U.S. unless an FAA waiver is obtained. Be sure to verify this and prepare appropriate waivers if required.",
+      "dbe": "Disadvantaged Business Enterprise (DBE) participation goals apply (49 CFR Part 26). Contact Procurement for current DBE goal percentage.",
+      "contract_clauses": "FAA mandatory contract provisions and certifications must be included in all contracts (AC 150/5370-10).",
+      "independent_estimate": "An independent fee or cost estimate is required for professional services contracts.",
+      "faa_approval": "Certain capital expenditures may require FAA pre-approval. Confirm with Airport Administration before proceeding."
+    }
+  },
+  "departments": [
+    "Airport",
+    "City Clerk",
+    "City Manager",
+    "Community & Economic Development",
+    "Engineering & Public Works",
+    "Finance",
+    "Fire Department",
+    "Human Resources",
+    "Information Technology",
+    "Library",
+    "Parks & Recreation",
+    "Police Department",
+    "Procurement",
+    "Utilities & Water Resources"
+  ],
+  "city": {
+    "_comment": "City-specific defaults used in document generation",
+    "name": "City of Palm Springs",
+    "state": "CA",
+    "city_state_zip": "Palm Springs, CA 92262",
+    "city_clerk_name": "Anthony Mejia",
+    "procurement_email": "procurement@palmspringsca.gov",
+    "procurement_phone": "(760) 323-8264",
+    "warehouse_address": "Contact Procurement for warehouse address"
+  },
+  "document_types": {
+    "_comment": "Attachment document types. Delete only if no attachments use the type.",
+    "types": [
+      {
+        "code": "quote",
+        "label": "Vendor Quote",
+        "multiple": true
+      },
+      {
+        "code": "contract",
+        "label": "Contract Document",
+        "multiple": false
+      },
+      {
+        "code": "rfq",
+        "label": "Request for Quote",
+        "multiple": false
+      },
+      {
+        "code": "ifb",
+        "label": "Informal Bid Request",
+        "multiple": false
+      },
+      {
+        "code": "insurance",
+        "label": "Insurance Certificate",
+        "multiple": true
+      },
+      {
+        "code": "license",
+        "label": "License / Certification",
+        "multiple": true
+      },
+      {
+        "code": "faa",
+        "label": "FAA Document",
+        "multiple": true
+      },
+      {
+        "code": "other",
+        "label": "Other",
+        "multiple": true
+      }
+    ]
+  },
+  "stage_gates": {
+    "_comment": "Required document types before a stage can be advanced. Empty list = no gate.",
+    "procurement_review": ["quote"],
+    "contract_development": ["contract"],
+    "bid_contract": ["contract"],
+    "attorney_review": ["contract"],
+    "it_review": ["quote", "contract"]
+  }
+}
