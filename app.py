@@ -344,6 +344,9 @@ def notify_requester(request_id: int, event: str,
 def index():
     return send_from_directory("static", "can-i-buy-this.html")
 
+@app.route("/health")
+def health():
+    return "ok", 200
 
 @app.route("/can-i-buy-this")
 def can_i_buy_this():
