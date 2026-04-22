@@ -95,6 +95,32 @@ def compute_approval_chain(amount: float, item_type: str) -> list:
     ]
 
 
+# ── Response sanitization ─────────────────────────────────────
+
+_PCARD_PATTERN = re.compile(r'\s*/\s*P-?[Cc]ard|P-?[Cc]ard\s*/\s*', re.IGNORECASE)
+_CURRENT_CAT   = re.compile(
+    r'[Uu]nder the current[^.]*categorization[^.]*\.?\s*', re.IGNORECASE
+)
+
+def _sanitize_result(result: dict) -> None:
+    """Remove P-Card from valid_methods names and scrub stale categorization text."""
+    for m in result.get("valid_methods", []):
+        m["method"] = _PCARD_PATTERN.sub("", m.get("method", "")).strip(" /,")
+
+    result["valid_methods"] = [
+        m for m in result.get("valid_methods", [])
+        if m.get("method", "").strip()
+        and "p-card" not in m.get("method", "").lower()
+    ]
+
+    for key in ("summary", "flags"):
+        val = result.get(key)
+        if isinstance(val, str):
+            result[key] = _CURRENT_CAT.sub("", val).strip()
+        elif isinstance(val, list):
+            result[key] = [_CURRENT_CAT.sub("", f).strip() for f in val]
+
+
 # ── Static routes ─────────────────────────────────────────────
 
 @app.route("/")
@@ -143,6 +169,7 @@ def analyze():
         amount    = float(data.get("amount") or 0)
         item_type = data.get("item_type", "other")
         result["approval_chain"] = compute_approval_chain(amount, item_type)
+        _sanitize_result(result)
 
         return jsonify(result)
 
@@ -435,6 +462,41 @@ def send_ss_report():
 @app.route("/api/config/departments")
 def get_departments():
     return jsonify({"departments": cfg._get("departments")})
+
+
+# ── Vector store admin ────────────────────────────────────────
+
+@app.route("/api/admin/ingest", methods=["POST"])
+def admin_ingest():
+    """
+    Trigger re-ingestion of policy documents into ChromaDB.
+    Requires INGEST_SECRET header to match the INGEST_SECRET env var.
+    """
+    import policy_rag
+
+    secret = os.getenv("INGEST_SECRET")
+    if secret and request.headers.get("X-Ingest-Secret") != secret:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if not os.getenv("OPENAI_API_KEY"):
+        return jsonify({"error": "OPENAI_API_KEY not configured"}), 500
+
+    try:
+        count = policy_rag.ingest()
+        return jsonify({"ok": True, "documents_ingested": count})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/admin/rag-status")
+def rag_status():
+    """Return whether the vector store is populated."""
+    import policy_rag
+    return jsonify({
+        "ready":      policy_rag.is_ready(),
+        "docs_path":  policy_rag.docs_path(),
+        "store_path": policy_rag._CHROMA_PATH,
+    })
 
 
 if __name__ == "__main__":

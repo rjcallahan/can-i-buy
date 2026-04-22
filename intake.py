@@ -1,53 +1,51 @@
 # intake.py
+import json
+import policy_rag
 from procurement_config import cfg
 
-# ── Config-driven constants ───────────────────────────────────
-# These are loaded from procurement_config.json.
-# Do not hardcode thresholds here — edit the JSON file instead.
 
-PCARD_PROHIBITED = cfg.pcard_prohibited_types()
+def _policy_queries(data: dict) -> list[str]:
+    """Build targeted queries to retrieve relevant policy passages."""
+    item_type = data.get("item_type", "other")
+    queries   = [f"{item_type} procurement purchasing policy requirements"]
 
+    if data.get("pcard") == "yes":
+        queries.append("purchasing card P-Card policy prohibited allowed categories")
+    if data.get("sole_source") == "yes":
+        queries.append("sole source justification requirements single vendor")
+    if data.get("federal_funds") == "yes":
+        queries.append("federal funds procurement requirements Buy American CFR 200")
+    if data.get("faa_governed") == "yes":
+        queries.append("FAA airport improvement program AIP procurement DBE Buy American")
+    if item_type == "professional_services":
+        queries.append("professional services insurance certificate conflict of interest")
+    if item_type in ("it_equipment", "it_software"):
+        queries.append("information technology IT equipment software approval")
 
-def get_threshold(item_type: str, amount: float) -> dict:
-    """Return the applicable procurement threshold rule."""
-    return cfg.get_procurement_method(item_type, amount)
-
-
-def requires_competitive_bid(item_type: str, amount: float) -> bool:
-    """Return True if this request requires competitive bidding."""
-    return cfg.requires_competitive_bid(item_type, amount)
+    queries.append("conflict of interest purchase splitting prohibited")
+    return queries
 
 
 def build_prompt(data: dict) -> str:
-    """Build the policy analysis prompt from form data."""
-    import json
-
     item_type = data.get("item_type", "other")
     amount    = float(data.get("amount", 0))
 
-    threshold_rule  = get_threshold(item_type, amount)
-    is_bid          = requires_competitive_bid(item_type, amount)
-
-    threshold_rules = json.dumps(
-        cfg.procurement_methods(item_type),
-        indent=2, default=str
-    )
+    threshold_rules = json.dumps(cfg.procurement_methods(item_type), indent=2, default=str)
+    is_bid          = cfg.requires_competitive_bid(item_type, amount)
+    threshold_rule  = cfg.get_procurement_method(item_type, amount)
+    city_name       = cfg.city_name() or "the City"
 
     sole_source_block = ""
     if data.get("sole_source") == "yes":
         sole_source_block = (
             f"- Proposed Vendor: {data.get('vendor_name', '')}\n"
-            f"- Sole Source Justification: "
-            f"{data.get('sole_source_justification', '')}"
+            f"- Sole Source Justification: {data.get('sole_source_justification', '')}"
         )
 
-
-    # Build attachment list — one per line
     attachment_lines = "\n".join(
         f"    * {f}" for f in data.get("attachments_list", [])
     ) or "    (none)"
 
-    # Bid path note for the AI
     bid_note = (
         f"NOTE: This request is AT OR ABOVE the ${cfg.bid_threshold(item_type):,.0f} "
         f"competitive bid threshold for {item_type}. "
@@ -58,6 +56,19 @@ def build_prompt(data: dict) -> str:
         f"NOTE: This request is BELOW the competitive bid threshold. "
         f"The required method is: {threshold_rule['method']}."
     )
+
+    # Retrieve relevant policy passages from the vector store
+    policy_context = policy_rag.query(_policy_queries(data))
+    if policy_context:
+        policy_section = f"RELEVANT POLICY FROM CITY DOCUMENTS:\n\n{policy_context}"
+    else:
+        policy_section = (
+            "POLICY GUIDANCE:\n"
+            "Apply standard California public procurement law and general best practices "
+            "for municipal purchasing. Key principles: competitive bidding above thresholds, "
+            "conflict of interest avoidance, purchase splitting prohibition, insurance "
+            "requirements for professional services, IT Director approval for technology."
+        )
 
     is_demo = data.get("demo", False)
     summary_instruction = (
@@ -73,7 +84,7 @@ def build_prompt(data: dict) -> str:
         "2-3 sentence plain English summary of the decision"
     )
 
-    return f"""You are a procurement compliance officer for the City of Palm Springs, California.
+    return f"""You are a procurement compliance officer for {city_name}.
 Analyze the following procurement request and return a JSON response only — no markdown, no explanation outside the JSON.
 
 PROCUREMENT REQUEST:
@@ -99,108 +110,69 @@ APPLICABLE PROCUREMENT THRESHOLDS FOR THIS ITEM TYPE:
 
 {bid_note}
 
-CITY POLICIES TO APPLY:
+{policy_section}
 
-1. THRESHOLD AND BID PATH:
-   The thresholds above define the procurement method for this item type.
-   - BELOW threshold → direct contract path. Approve if otherwise compliant.
-   - AT OR ABOVE threshold → competitive bid path. Procurement manages the
-     bid process. Do NOT flag bid path requests as non-compliant simply
-     because of their dollar amount. Approve them and note bid requirement.
-   - $74,000 equipment is BELOW the $75,000 threshold — this is a direct
-     contract, NOT a bid. Never flag amounts below the threshold as requiring
-     competitive bidding.
+PROCESSING RULES — apply these regardless of policy source:
 
-2. P-CARD:
-   P-Card is a PAYMENT METHOD, not a procurement method. Never include
-   "P-Card" in the procurement_method field — that field describes HOW
-   the purchase is sourced (Single Quote, 3 Quotes, Competitive Bid),
-   not how it is paid.
-   - If pcard=no: set pcard_eligible=false, pcard_note="P-Card not requested"
-   - If pcard=yes AND item type is prohibited: set pcard_eligible=false
-   - If pcard=yes AND item type is allowed: set pcard_eligible=true
-   P-Card is PROHIBITED for: IT equipment, IT software, professional
-   services, construction, rentals, leases, and all services.
-   The procurement_method field must NEVER contain the word "P-Card".
+IT MISCATEGORIZATION: If the item name or description strongly suggests IT equipment or
+software (computers, laptops, tablets, phones, monitors, servers, software licenses,
+subscriptions, etc.) but the stated type is NOT it_equipment or it_software, add a flag:
+"This item appears to be IT equipment or software. If so, it should be recategorized as
+IT Equipment or IT Software — P-Card is prohibited and IT Director approval is required
+regardless of amount."
+Do NOT explain what applies under the current (potentially wrong) categorization in the flag.
+The flag text should only describe the consequence of correct categorization.
 
-3. SOLE SOURCE:
-   If sole_source=yes, simply note that a sole source justification document
-   will be required at submission. Do NOT change the verdict, procurement
-   method, or flag it as a policy concern. Do NOT require it to be provided
-   now — it is a document to include when submitting the formal request.
+P-CARD: P-Card is a PAYMENT METHOD, not a procurement method. Never include "P-Card"
+in the procurement_method field. Apply these rules strictly in order:
+- If pcard=no: set pcard_eligible=false, pcard_note="P-Card not requested".
+- If the stated item type is prohibited for P-Card: set pcard_eligible=false, explain why.
+- If pcard=yes AND stated type is P-Card eligible AND amount <= ${cfg.pcard_transaction_limit():,.0f}:
+  set pcard_eligible=true, pcard_note="P-Card approved within the ${cfg.pcard_transaction_limit():,.0f} single-transaction limit".
+- If pcard=yes AND stated type is P-Card eligible AND amount > ${cfg.pcard_transaction_limit():,.0f}:
+  set pcard_eligible=true.
+  pcard_note="Exceeds the standard ${cfg.pcard_transaction_limit():,.0f} single-transaction limit.
+  A temporary limit increase requires prior Procurement approval before purchasing."
+  Add to next_steps: "Contact Procurement to request a temporary P-Card limit increase before purchasing."
+  Include in summary: state that P-Card can be used but a temporary limit increase must be
+  approved by Procurement before the purchase is made.
 
-4. FEDERAL FUNDS:
-   Trigger additional requirements: Buy American, 2 CFR §200.320
-   micro-purchase limits ($2,000 construction / $3,000 non-construction),
-   mandatory competition requirements, and federal conflict of interest
-   standards.
+SOLE SOURCE: If sole_source=yes, note that a sole source justification document will
+be required at submission. Do NOT change the verdict or flag as non-compliant now.
 
-6. PROFESSIONAL SERVICES:
-   Require an insurance certificate on file before work begins.
+FAA: If faa_governed=yes, populate faa_notes with a plain-English compliance summary
+of applicable FAA requirements (Buy American, DBE, contract clauses, thresholds, etc.).
+Do NOT change the verdict or procurement method. If faa_governed=no, set faa_notes="".
 
-7. CONFLICT OF INTEREST:
-   No employee may procure from family members, close friends, or relatives.
+FEDERAL FUNDS: If federal_funds=yes, apply additional requirements from the policy
+above to flags and next_steps. Do NOT change the procurement method.
 
-8. PURCHASE SPLITTING:
-   Splitting purchases to circumvent spending limits is strictly prohibited.
+EMAIL: Do not flag or comment on the requester's email domain — notification only.
 
-9. IT APPROVAL:
-   IT equipment and software require IT Director approval regardless of amount.
+ACCOUNT CODE: Optional at intake — never flag a missing account code.
 
-10. DOCUMENT MATCHING — CRITICAL:
-    Check EACH attached file independently using fuzzy matching.
-    Process every file before making document status decisions.
-    - quote, quotation, bid, proposal, estimate → vendor quote PROVIDED
-    - insurance, cert, coi, acord, liability    → insurance cert PROVIDED
-    - sole, source, letter                      → sole source letter PROVIDED
-    - contract, agreement, scope, sow           → contract PROVIDED
-    - w9, w-9, vendor-form                      → vendor form PROVIDED
-    Mark as provided generously. Only mark required if NO file could
-    reasonably match. Do not require documents that are not applicable
-    to this type of purchase.
+DOCUMENT MATCHING — check each attached file using fuzzy matching:
+- quote, quotation, bid, proposal, estimate → vendor quote PROVIDED
+- insurance, cert, coi, acord, liability    → insurance cert PROVIDED
+- sole, source, letter                      → sole source letter PROVIDED
+- contract, agreement, scope, sow           → contract PROVIDED
+- w9, w-9, vendor-form                      → vendor form PROVIDED
+Mark as provided generously. Only mark required if NO file could reasonably match.
 
-11. REQUIRED DOCUMENTS BY TYPE:
-    - supplies/equipment under $15k: vendor quote (if not sole source)
-    - supplies/equipment $15k-$75k: three vendor quotes
-    - it_equipment/software: IT Director approval form (note as next step, not blocking)
-    - professional_services: insurance certificate
-    - construction: engineering plans (note as next step for large projects)
-    - travel: travel authorization form
-    - bid path (any type at/above threshold): do NOT require quotes —
-      Procurement will solicit bids formally. Only flag if sole source
-      docs are missing on a sole source request.
+REQUIRED DOCUMENTS BY PURCHASE TYPE:
+- supplies/equipment under ${cfg.bid_threshold('supplies'):,.0f}: vendor quote (if not sole source)
+- supplies/equipment over that threshold: three vendor quotes
+- it_equipment/it_software: IT Director approval form (next step, not blocking)
+- professional_services: insurance certificate
+- construction: engineering plans (next step for large projects)
+- travel: travel authorization form
+- bid path (at/above threshold): do NOT require quotes — Procurement solicits bids formally
 
-12. EMAIL:
-    Do not flag or comment on the requester's email domain. Email is for
-    notification only.
-
-13. ACCOUNT CODE:
-    Account code is optional at intake. Never flag a missing account code.
-
-14. FAA-GOVERNED PURCHASES:
-    If faa_governed=yes, this purchase is subject to FAA regulations (AIP-funded
-    or FAA-regulated airport purchase). Do NOT change the verdict or procurement
-    method — FAA compliance is informational only. Populate the faa_notes field
-    with a plain-English compliance summary covering whichever of the following
-    apply to this purchase type and amount:
-    - Buy American: Materials and equipment must be U.S.-produced (49 U.S.C. § 50101).
-      An FAA waiver is required for any foreign-sourced items.
-    - DBE: Disadvantaged Business Enterprise participation goals apply (49 CFR Part 26).
-      Requester should contact Procurement for the current DBE goal percentage.
-    - Lower thresholds: FAA micro-purchase threshold is $10,000 (vs city standard).
-      Simplified acquisition threshold is $250,000.
-    - Required contract clauses: FAA mandatory provisions must be included in all
-      contracts (AC 150/5370-10).
-    - Independent estimate: Required for professional services contracts.
-    - FAA pre-approval: May be required for capital expenditures — confirm with
-      Airport Administration.
-    If faa_governed=no, set faa_notes to empty string.
-
-{"DEMO MODE RULES — override normal verdict logic:" if is_demo else ""}
-{"""- This is a policy preview only. The requester has not submitted any documents yet.
-- NEVER return RETURNED due to missing vendor quotes, missing IT Director approval, or any other missing document. Documents are not expected at this stage.
-- Only return RETURNED if there is a genuine policy violation (e.g. sole source flagged but no justification provided).
-- Return APPROVED for all standard, compliant purchase requests regardless of attachment count.""" if is_demo else ""}
+{"DEMO MODE — override normal verdict logic:" if is_demo else ""}
+{"""- Policy preview only. No documents submitted yet.
+- NEVER return RETURNED for missing documents — they are not expected at this stage.
+- Only return RETURNED for a genuine policy violation (e.g. sole source with no justification).
+- Return APPROVED for all standard, compliant requests regardless of attachment count.""" if is_demo else ""}
 
 Evaluate this request and return ONLY this JSON structure:
 {{
@@ -222,4 +194,4 @@ Evaluate this request and return ONLY this JSON structure:
   "pcard_note": "explanation of P-Card eligibility decision"
 }}
 
-For valid_methods: list ALL procurement paths that are legally permissible for this purchase type and amount. If P-Card is a valid option, list it FIRST. If P-Card is prohibited for this item type or the amount exceeds the card limit, do not include it. Always include at least one method."""
+For valid_methods: list ALL legally permissible procurement methods (Single Quote, 3 Quotes, Competitive Bid, etc.). Do NOT mention P-Card anywhere in valid_methods — not in the method name, description, or documents_needed. P-Card is a payment method handled separately via pcard_eligible and pcard_note. Always include at least one method."""
