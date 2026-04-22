@@ -355,13 +355,5 @@
         "multiple": true
       }
     ]
-  },
-  "stage_gates": {
-    "_comment": "Required document types before a stage can be advanced. Empty list = no gate.",
-    "procurement_review": ["quote"],
-    "contract_development": ["contract"],
-    "bid_contract": ["contract"],
-    "attorney_review": ["contract"],
-    "it_review": ["quote", "contract"]
   }
 }

@@ -62,9 +62,6 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
 #save-status{font-size:0.85rem;color:#666}#save-status.ok{color:#15803d}#save-status.err{color:#b91c1c}
 .spacer{height:18px}
 .hint{font-size:0.82rem;color:#777;margin-bottom:12px}
-.gate-card{margin-bottom:12px;padding:12px 14px;border:1px solid #d0d9e8;border-radius:8px;background:#fff}
-.gate-card-title{font-weight:700;font-size:0.83rem;color:#1f3864;margin-bottom:8px}
-.gate-checks{display:flex;flex-wrap:wrap;gap:8px 20px}
 </style>
 </head>
 <body>
@@ -86,7 +83,6 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
     <button class="tab-btn" onclick="switchTab(this,'keywords')">Keywords</button>
     <button class="tab-btn" onclick="switchTab(this,'departments')">Departments</button>
     <button class="tab-btn" onclick="switchTab(this,'documents')">Document Types</button>
-    <button class="tab-btn" onclick="switchTab(this,'gates')">Stage Gates</button>
     <button class="tab-btn" onclick="switchTab(this,'ai')">AI Model</button>
   </nav>
 
@@ -250,13 +246,6 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
       <button class="btn btn-ghost btn-sm btn-add" onclick="addDocTypeRow()">+ Add Type</button>
     </div>
 
-    <!-- STAGE GATES -->
-    <div class="panel" id="panel-gates">
-      <div class="section-title">Stage Gates</div>
-      <p class="hint">Required document type(s) before a stage can advance. Leave all unchecked for no gate on that stage.</p>
-      <div id="gates-container"></div>
-    </div>
-
     <!-- AI -->
     <div class="panel" id="panel-ai">
       <div class="section-title">AI Model</div>
@@ -283,15 +272,7 @@ const ITEM_LABELS = {
   professional_services:'Professional Services', construction:'Construction',
   travel:'Travel', other:'Other'
 };
-const GATE_STAGES = [
-  'procurement_review','hr_union_review','it_review','engineering_review',
-  'attorney_review','spc_review','contract_development','bid_development',
-  'bid_process','bid_award','bid_contract','director_approval','acm_approval',
-  'manager_approval','council_approval'
-];
-
 let rawConfig = {};
-let _docTypeCodes = [];
 
 // ── Tabs ──────────────────────────────────────────────────────
 function switchTab(btn, id) {
@@ -464,30 +445,6 @@ function collectDocumentTypes() {
   }).filter(t => t.code);
 }
 
-// ── Stage gates ───────────────────────────────────────────────
-function renderStageGates(gates, docTypes) {
-  _docTypeCodes = (docTypes||[]).map(t => t.code);
-  document.getElementById('gates-container').innerHTML = GATE_STAGES.map(stage => {
-    const required = gates?.[stage] || [];
-    const label = stage.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
-    const checks = _docTypeCodes.map(code => `
-      <div class="cb-row">
-        <input type="checkbox" id="gate-${stage}-${code}" ${required.includes(code)?'checked':''}>
-        <label for="gate-${stage}-${code}">${code}</label>
-      </div>`).join('');
-    return `<div class="gate-card"><div class="gate-card-title">${label}</div><div class="gate-checks">${checks}</div></div>`;
-  }).join('');
-}
-
-function collectStageGates() {
-  const gates = {};
-  GATE_STAGES.forEach(stage => {
-    const required = _docTypeCodes.filter(code => document.getElementById(`gate-${stage}-${code}`)?.checked);
-    if (required.length) gates[stage] = required;
-  });
-  return gates;
-}
-
 // ── Populate all ──────────────────────────────────────────────
 function populateAll(c) {
   document.getElementById('hdr-city').textContent = c.city?.name || 'Config';
@@ -530,8 +487,6 @@ function populateAll(c) {
   renderChips('chips-depts', c.departments || []);
   // Document types
   renderDocumentTypes(c.document_types?.types || []);
-  // Stage gates (must come after doc types so _docTypeCodes is set)
-  renderStageGates(c.stage_gates || {}, c.document_types?.types || []);
   // AI
   setVal('ai-model', c.ai?.model);
 }
@@ -579,7 +534,6 @@ function collectConfig() {
   c.maintenance_redirect_keywords = getChips('chips-maint');
   c.departments                   = getChips('chips-depts');
   c.document_types = { ...c.document_types, types: collectDocumentTypes() };
-  c.stage_gates    = collectStageGates();
   c.ai = { ...c.ai, model: document.getElementById('ai-model').value };
   return c;
 }

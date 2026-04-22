@@ -277,50 +277,6 @@ class _Config:
                 return t["label"]
         return code.replace("_", " ").title()
 
-    def stage_gate_types(self, stage_code: str) -> list[str]:
-        """
-        Return required document type codes for a stage gate.
-        Empty list means no gate — any attachment (or none) is fine.
-        """
-        gates = self._get("stage_gates")
-        return [v for k, v in gates.items()
-                if k == stage_code and not k.startswith("_")]
-
-    def stage_requires_document_type(self, stage_code: str,
-                                      attachments: list[dict]) -> tuple[bool, str]:
-        """
-        Check if a stage gate is satisfied by the current attachments.
-        Returns (passes, error_message).
-        passes=True means gate is satisfied or no gate exists.
-        """
-        gates = self._get("stage_gates")
-        required_types = gates.get(stage_code, [])
-
-        # No gate for this stage
-        if not required_types:
-            return True, ""
-
-        # Check if any attachment matches a required type
-        active = [a for a in attachments if a.get("status") == "active"]
-        active_types = {a.get("document_type", "other") for a in active}
-
-        for req_type in required_types:
-            if req_type in active_types:
-                return True, ""
-
-        # Gate not satisfied — build helpful error message
-        type_labels = [self.document_type_label(t) for t in required_types]
-        if len(type_labels) == 1:
-            needed = f"a {type_labels[0]}"
-        else:
-            needed = f"a {' or '.join(type_labels)}"
-
-        stage_label = stage_code.replace("_", " ").title()
-        return False, (
-            f"{needed} must be attached before advancing from "
-            f"{stage_label}. Please upload the document and try again."
-        )
-
     # ── Raw access ────────────────────────────────────────────
 
     def raw(self, *keys: str) -> Any:
