@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Config Admin — Procurement Gateway</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh}
+header{background:#1f3864;color:#fff;padding:13px 28px;display:flex;align-items:center;gap:14px}
+header h1{font-size:0.95rem;font-weight:700;letter-spacing:0.02em}
+.city-badge{background:rgba(255,255,255,0.18);border-radius:12px;padding:3px 11px;font-size:0.8rem;letter-spacing:0.01em}
+.layout{display:flex;min-height:calc(100vh - 46px - 54px)}
+/* Sidebar */
+.sidebar{width:185px;background:#fff;border-right:1px solid #dde3ec;padding:10px 0;flex-shrink:0}
+.tab-btn{display:block;width:100%;padding:9px 18px;border:none;background:none;cursor:pointer;font-size:0.82rem;color:#555;border-left:3px solid transparent;text-align:left;transition:0.1s}
+.tab-btn:hover{background:#f5f7fb;color:#1f3864}
+.tab-btn.active{color:#1f3864;font-weight:700;border-left-color:#1f3864;background:#eef2f9}
+/* Content */
+.content{flex:1;padding:26px 34px 80px;overflow-y:auto;max-width:860px}
+.panel{display:none}.panel.active{display:block}
+.section-title{font-size:1rem;font-weight:700;color:#1f3864;margin-bottom:18px;padding-bottom:9px;border-bottom:2px solid #e0e8f4}
+/* Fields */
+.field{margin-bottom:13px}
+.field label,.field-label{display:block;font-size:0.72rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.field input,.field textarea,.field select,input[type=text],input[type=number],input[type=email]{padding:7px 10px;border:1px solid #d0d9e8;border-radius:6px;font-size:0.875rem;color:#222;background:#fff;transition:border-color 0.15s}
+.field input,.field textarea{width:100%}
+input:focus,textarea:focus{outline:none;border-color:#1f3864;box-shadow:0 0 0 3px rgba(31,56,100,0.08)}
+.field textarea{min-height:70px;resize:vertical}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* Tables */
+.tbl-wrap{border:1px solid #d0d9e8;border-radius:8px;overflow:hidden;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:0.85rem}
+th{background:#eef2f9;color:#1f3864;font-weight:700;font-size:0.73rem;text-transform:uppercase;letter-spacing:0.04em;padding:8px 10px;text-align:left;border-bottom:2px solid #d0d9e8}
+td{padding:6px 10px;border-bottom:1px solid #eef0f4;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9e8;border-radius:5px;background:#fff}
+/* Buttons */
+.btn{padding:7px 15px;border-radius:6px;border:none;font-size:0.83rem;font-weight:600;cursor:pointer;transition:0.15s}
+.btn-primary{background:#1f3864;color:#fff}.btn-primary:hover{background:#162d54}
+.btn-sm{padding:3px 9px;font-size:0.78rem}
+.btn-ghost{background:#f0f2f5;color:#444;border:1px solid #d0d9e8}.btn-ghost:hover{background:#e4e8f0}
+.btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}.btn-danger:hover{background:#fecaca}
+.btn-add{margin-top:8px}
+/* Chips */
+.chips-wrap{border:1px solid #d0d9e8;border-radius:6px;padding:8px;background:#fff;min-height:46px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.chip{display:inline-flex;align-items:center;gap:3px;background:#eef2f9;border:1px solid #c8d6e8;border-radius:14px;padding:3px 9px;font-size:0.78rem;color:#1f3864}
+.chip button{background:none;border:none;cursor:pointer;color:#999;font-size:0.85rem;line-height:1;padding:0 0 0 2px}.chip button:hover{color:#b91c1c}
+.chip-add{display:flex;gap:6px}
+.chip-add input{flex:1;padding:5px 8px;border:1px solid #d0d9e8;border-radius:5px;font-size:0.83rem;background:#fff}
+/* Checkboxes */
+.cb-group{display:flex;flex-direction:column;gap:7px}
+.cb-row{display:flex;align-items:center;gap:7px;font-size:0.875rem}
+.cb-row input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#1f3864}
+/* Sub-tabs */
+.sub-tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.sub-tab-btn{padding:4px 11px;border-radius:14px;border:1px solid #d0d9e8;background:#fff;font-size:0.78rem;cursor:pointer;color:#555}
+.sub-tab-btn.active{background:#1f3864;color:#fff;border-color:#1f3864}
+.sub-panel{display:none}.sub-panel.active{display:block}
+/* Save bar */
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dde3ec;padding:10px 28px;display:flex;align-items:center;gap:12px;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,0.06)}
+#save-status{font-size:0.85rem;color:#666}#save-status.ok{color:#15803d}#save-status.err{color:#b91c1c}
+.spacer{height:18px}
+.hint{font-size:0.82rem;color:#777;margin-bottom:12px}
+.gate-card{margin-bottom:12px;padding:12px 14px;border:1px solid #d0d9e8;border-radius:8px;background:#fff}
+.gate-card-title{font-weight:700;font-size:0.83rem;color:#1f3864;margin-bottom:8px}
+.gate-checks{display:flex;flex-wrap:wrap;gap:8px 20px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Procurement Gateway — Config Admin</h1>
+  <span class="city-badge" id="hdr-city">Loading…</span>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <button class="tab-btn active" onclick="switchTab(this,'city')">City Info</button>
+    <button class="tab-btn" onclick="switchTab(this,'thresholds')">Bid Thresholds</button>
+    <button class="tab-btn" onclick="switchTab(this,'signing')">Signing Authority</button>
+    <button class="tab-btn" onclick="switchTab(this,'pcard')">P-Card &amp; Federal</button>
+    <button class="tab-btn" onclick="switchTab(this,'attorney')">Attorney Review</button>
+    <button class="tab-btn" onclick="switchTab(this,'methods')">Proc. Methods</button>
+    <button class="tab-btn" onclick="switchTab(this,'mail')">Mail</button>
+    <button class="tab-btn" onclick="switchTab(this,'keywords')">Keywords</button>
+    <button class="tab-btn" onclick="switchTab(this,'departments')">Departments</button>
+    <button class="tab-btn" onclick="switchTab(this,'documents')">Document Types</button>
+    <button class="tab-btn" onclick="switchTab(this,'gates')">Stage Gates</button>
+    <button class="tab-btn" onclick="switchTab(this,'ai')">AI Model</button>
+  </nav>
+
+  <main class="content">
+
+    <!-- CITY -->
+    <div class="panel active" id="panel-city">
+      <div class="section-title">City Information</div>
+      <div class="grid-2">
+        <div class="field"><label>City Name</label><input id="city-name" type="text" placeholder="City of Palm Springs"></div>
+        <div class="field"><label>State</label><input id="city-state" type="text" placeholder="CA" style="max-width:80px"></div>
+      </div>
+      <div class="field"><label>City, State, ZIP</label><input id="city-state-zip" type="text" placeholder="Palm Springs, CA 92262"></div>
+      <div class="grid-2">
+        <div class="field"><label>City Clerk Name</label><input id="city-clerk" type="text"></div>
+        <div class="field"><label>Procurement Phone</label><input id="city-phone" type="text"></div>
+      </div>
+      <div class="field"><label>Procurement Email</label><input id="city-email" type="text"></div>
+      <div class="field"><label>Warehouse / Delivery Address</label><input id="city-warehouse" type="text"></div>
+    </div>
+
+    <!-- BID THRESHOLDS -->
+    <div class="panel" id="panel-thresholds">
+      <div class="section-title">Bid Thresholds</div>
+      <p class="hint">Amounts <strong>at or above</strong> these values require competitive bidding.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Item Type</th><th>Threshold ($)</th></tr></thead>
+          <tbody id="bt-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SIGNING AUTHORITY -->
+    <div class="panel" id="panel-signing">
+      <div class="section-title">Signing Authority</div>
+      <p class="hint">Non-public = standard contracts &nbsp;|&nbsp; Public = public works / construction</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Role Code</th><th>Display Label</th><th>Non-Public Max ($)</th><th>Public Max ($)</th></tr></thead>
+          <tbody id="sa-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PCARD & FEDERAL -->
+    <div class="panel" id="panel-pcard">
+      <div class="section-title">P-Card</div>
+      <div class="field" style="max-width:220px">
+        <label>Single Transaction Limit ($)</label>
+        <input id="pcard-limit" type="number" step="100">
+      </div>
+      <div class="field">
+        <label>Prohibited Item Types</label>
+        <div class="cb-group" id="pcard-prohibited"></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="section-title">Federal Funds — Micro-Purchase Thresholds</div>
+      <p class="hint">2 CFR 200.320 thresholds when federal funds are involved.</p>
+      <div class="grid-2">
+        <div class="field"><label>Non-Construction ($)</label><input id="fed-non-const" type="number" step="500"></div>
+        <div class="field"><label>Construction ($)</label><input id="fed-const" type="number" step="500"></div>
+      </div>
+    </div>
+
+    <!-- ATTORNEY REVIEW -->
+    <div class="panel" id="panel-attorney">
+      <div class="section-title">Attorney Review</div>
+      <div class="field">
+        <div class="cb-row" style="margin-bottom:12px">
+          <input type="checkbox" id="ar-always">
+          <label for="ar-always" style="font-size:0.875rem;cursor:pointer">Always required</label>
+        </div>
+      </div>
+      <div class="field" style="max-width:320px">
+        <label>Phase 2 bypass threshold ($) <span style="font-weight:400;text-transform:none;letter-spacing:0">— leave blank for null</span></label>
+        <input id="ar-threshold" type="number" step="1000" placeholder="null — not yet active">
+      </div>
+      <p class="hint" style="margin-top:6px">When set, app-generated contracts <em>below</em> this amount may skip attorney review in phase 2.</p>
+    </div>
+
+    <!-- PROCUREMENT METHODS -->
+    <div class="panel" id="panel-methods">
+      <div class="section-title">Procurement Methods</div>
+      <p class="hint">Ordered tiers per item type. First tier whose max ≥ purchase amount applies.</p>
+      <div class="sub-tabs" id="method-tabs"></div>
+      <div id="method-panels"></div>
+    </div>
+
+    <!-- MAIL -->
+    <div class="panel" id="panel-mail">
+      <div class="section-title">Mail Settings</div>
+      <div class="grid-2">
+        <div class="field"><label>SMTP Host</label><input id="mail-host" type="text"></div>
+        <div class="field"><label>SMTP Port</label><input id="mail-port" type="number" style="max-width:100px"></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>SMTP User</label><input id="mail-user" type="text"></div>
+        <div class="field"><label>From Name</label><input id="mail-from-name" type="text"></div>
+      </div>
+      <div class="field"><label>From Address</label><input id="mail-from" type="text"></div>
+      <div class="field"><label>Allowed Domain <span style="font-weight:400;text-transform:none;letter-spacing:0">(all addresses at this domain are allowed)</span></label><input id="mail-domain" type="text" placeholder="@palmspringsca.gov"></div>
+      <div class="field">
+        <label>Additional Allowed Addresses</label>
+        <div class="chips-wrap">
+          <div class="chips" id="chips-allowed"></div>
+          <div class="chip-add">
+            <input id="allowed-input" type="text" placeholder="user@example.com" onkeydown="if(event.key==='Enter'){addChip('chips-allowed','allowed-input');event.preventDefault()}">
+            <button class="btn btn-sm btn-ghost" onclick="addChip('chips-allowed','allowed-input')">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEYWORDS -->
+    <div class="panel" id="panel-keywords">
+      <div class="section-title">HR Review Keywords</div>
+      <p class="hint">Purchases containing these terms are flagged for HR / union review.</p>
+      <div class="chips-wrap">
+        <div class="chips" id="chips-hr"></div>
+        <div class="chip-add">
+          <input id="hr-input" type="text" placeholder="Add keyword…" onkeydown="if(event.key==='Enter'){addChip('chips-hr','hr-input');event.preventDefault()}">
+          <button class="btn btn-sm btn-ghost" onclick="addChip('chips-hr','hr-input')">Add</button>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div class="section-title">Maintenance Redirect Keywords</div>
+      <p class="hint">Purchases matching these phrases are redirected to city maintenance.</p>
+      <div class="chips-wrap">
+        <div class="chips" id="chips-maint"></div>
+        <div class="chip-add">
+          <input id="maint-input" type="text" placeholder="Add phrase…" onkeydown="if(event.key==='Enter'){addChip('chips-maint','maint-input');event.preventDefault()}">
+          <button class="btn btn-sm btn-ghost" onclick="addChip('chips-maint','maint-input')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEPARTMENTS -->
+    <div class="panel" id="panel-departments">
+      <div class="section-title">Departments</div>
+      <p class="hint">Shown in the intake form department dropdown.</p>
+      <div class="chips-wrap">
+        <div class="chips" id="chips-depts"></div>
+        <div class="chip-add">
+          <input id="dept-input" type="text" placeholder="Add department…" onkeydown="if(event.key==='Enter'){addChip('chips-depts','dept-input');event.preventDefault()}">
+          <button class="btn btn-sm btn-ghost" onclick="addChip('chips-depts','dept-input')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENT TYPES -->
+    <div class="panel" id="panel-documents">
+      <div class="section-title">Document Types</div>
+      <p class="hint">Attachment types available when uploading supporting documents.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Label</th><th style="width:80px;text-align:center">Multiple</th><th style="width:42px"></th></tr></thead>
+          <tbody id="dt-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-add" onclick="addDocTypeRow()">+ Add Type</button>
+    </div>
+
+    <!-- STAGE GATES -->
+    <div class="panel" id="panel-gates">
+      <div class="section-title">Stage Gates</div>
+      <p class="hint">Required document type(s) before a stage can advance. Leave all unchecked for no gate on that stage.</p>
+      <div id="gates-container"></div>
+    </div>
+
+    <!-- AI -->
+    <div class="panel" id="panel-ai">
+      <div class="section-title">AI Model</div>
+      <div class="field" style="max-width:440px">
+        <label>Claude Model ID</label>
+        <input id="ai-model" type="text" placeholder="claude-sonnet-4-20250514">
+      </div>
+      <p class="hint" style="margin-top:6px">Used for all AI analysis. Changing this affects /analyze and /api/analyze-sole-source.</p>
+    </div>
+
+  </main>
+</div>
+
+<div class="save-bar">
+  <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+  <span id="save-status"></span>
+</div>
+
+<script>
+const ITEM_TYPES = ['supplies','equipment','it_equipment','it_software','maintenance_services','professional_services','construction','travel','other'];
+const ITEM_LABELS = {
+  supplies:'Supplies', equipment:'Equipment', it_equipment:'IT Equipment',
+  it_software:'IT Software', maintenance_services:'Maintenance Services',
+  professional_services:'Professional Services', construction:'Construction',
+  travel:'Travel', other:'Other'
+};
+const GATE_STAGES = [
+  'procurement_review','hr_union_review','it_review','engineering_review',
+  'attorney_review','spc_review','contract_development','bid_development',
+  'bid_process','bid_award','bid_contract','director_approval','acm_approval',
+  'manager_approval','council_approval'
+];
+
+let rawConfig = {};
+let _docTypeCodes = [];
+
+// ── Tabs ──────────────────────────────────────────────────────
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+function switchSubTab(type) {
+  document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.sub-tab-btn[data-type="${type}"]`).classList.add('active');
+  document.getElementById('mp-' + type).classList.add('active');
+}
+
+// ── Chips ─────────────────────────────────────────────────────
+function renderChips(id, items) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  (items || []).forEach(v => el.appendChild(makeChip(v)));
+}
+
+function makeChip(v) {
+  const s = document.createElement('span');
+  s.className = 'chip';
+  s.innerHTML = `${v} <button onclick="this.parentElement.remove()">×</button>`;
+  return s;
+}
+
+function addChip(containerId, inputId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) return;
+  document.getElementById(containerId).appendChild(makeChip(val));
+  input.value = '';
+}
+
+function getChips(id) {
+  return [...document.getElementById(id).querySelectorAll('.chip')]
+    .map(c => c.textContent.replace('×','').trim()).filter(Boolean);
+}
+
+// ── Bid thresholds ────────────────────────────────────────────
+function renderBidThresholds(bt) {
+  document.getElementById('bt-tbody').innerHTML = ITEM_TYPES.map(t => `
+    <tr><td>${ITEM_LABELS[t]}</td>
+    <td><input type="number" id="bt-${t}" value="${bt[t] ?? ''}" step="1000" style="width:150px"></td></tr>`
+  ).join('');
+}
+
+// ── Signing authority ─────────────────────────────────────────
+function renderSigningAuthority(levels) {
+  document.getElementById('sa-tbody').innerHTML = (levels || []).map((l, i) => `
+    <tr>
+      <td><input type="text" id="sa-role-${i}" value="${l.role||''}" style="width:130px"></td>
+      <td><input type="text" id="sa-label-${i}" value="${esc(l.label)}" style="width:200px"></td>
+      <td><input type="number" id="sa-np-${i}" value="${l.non_public_max ?? ''}" step="5000" style="width:130px"></td>
+      <td><input type="number" id="sa-pub-${i}" value="${l.public_max ?? ''}" step="5000" style="width:130px"></td>
+    </tr>`).join('');
+}
+
+function collectSigningLevels() {
+  const count = (rawConfig.signing_authority?.levels || []).length;
+  return Array.from({length: count}, (_, i) => ({
+    role:          document.getElementById(`sa-role-${i}`)?.value || '',
+    label:         document.getElementById(`sa-label-${i}`)?.value || '',
+    non_public_max: parseFloat(document.getElementById(`sa-np-${i}`)?.value) || 0,
+    public_max:     parseFloat(document.getElementById(`sa-pub-${i}`)?.value) || 0,
+  }));
+}
+
+// ── P-Card prohibited ─────────────────────────────────────────
+function renderPcardProhibited(prohibited) {
+  document.getElementById('pcard-prohibited').innerHTML = ITEM_TYPES.map(t => `
+    <div class="cb-row">
+      <input type="checkbox" id="pcb-${t}" ${(prohibited||[]).includes(t) ? 'checked' : ''}>
+      <label for="pcb-${t}">${ITEM_LABELS[t]}</label>
+    </div>`).join('');
+}
+
+function collectPcardProhibited() {
+  return ITEM_TYPES.filter(t => document.getElementById(`pcb-${t}`)?.checked);
+}
+
+// ── Procurement methods ───────────────────────────────────────
+function renderProcurementMethods(methods) {
+  const tabsEl  = document.getElementById('method-tabs');
+  const panelsEl = document.getElementById('method-panels');
+  tabsEl.innerHTML = '';
+  panelsEl.innerHTML = '';
+  ITEM_TYPES.forEach((type, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'sub-tab-btn' + (idx === 0 ? ' active' : '');
+    btn.dataset.type = type;
+    btn.textContent = ITEM_LABELS[type];
+    btn.onclick = () => switchSubTab(type);
+    tabsEl.appendChild(btn);
+    const panel = document.createElement('div');
+    panel.className = 'sub-panel' + (idx === 0 ? ' active' : '');
+    panel.id = 'mp-' + type;
+    const tiers = methods[type] || [];
+    panel.innerHTML = `
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Max ($)</th><th>Method Name</th><th>Process Description</th><th style="width:42px"></th></tr></thead>
+          <tbody id="mt-${type}">${tiers.map((t,i) => tierRow(type,i,t)).join('')}</tbody>
+        </table>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-add" onclick="addTierRow('${type}')">+ Add Tier</button>`;
+    panelsEl.appendChild(panel);
+  });
+}
+
+function tierRow(type, i, t) {
+  return `<tr>
+    <td><input type="number" id="mm-${type}-${i}" value="${t.max??''}" step="1000" style="width:110px"></td>
+    <td><input type="text"   id="mn-${type}-${i}" value="${esc(t.method)}"></td>
+    <td><input type="text"   id="mp-${type}-${i}" value="${esc(t.process)}"></td>
+    <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
+  </tr>`;
+}
+
+function addTierRow(type) {
+  const tbody = document.getElementById('mt-' + type);
+  const i = tbody.querySelectorAll('tr').length;
+  tbody.insertAdjacentHTML('beforeend', tierRow(type, i, {max:'',method:'',process:''}));
+}
+
+function collectProcurementMethods() {
+  const result = {};
+  ITEM_TYPES.forEach(type => {
+    const tbody = document.getElementById('mt-' + type);
+    if (!tbody) return;
+    result[type] = [...tbody.querySelectorAll('tr')].map(row => {
+      const inputs = row.querySelectorAll('input');
+      return {
+        max:     parseFloat(inputs[0]?.value) || 0,
+        method:  inputs[1]?.value || '',
+        process: inputs[2]?.value || '',
+      };
+    });
+  });
+  return result;
+}
+
+// ── Document types ────────────────────────────────────────────
+function renderDocumentTypes(types) {
+  document.getElementById('dt-tbody').innerHTML = (types||[]).map((t,i) => docTypeRow(i,t)).join('');
+}
+
+function docTypeRow(i, t) {
+  return `<tr>
+    <td><input type="text" id="dt-code-${i}"  value="${esc(t.code)}"  style="width:120px"></td>
+    <td><input type="text" id="dt-label-${i}" value="${esc(t.label)}"></td>
+    <td style="text-align:center"><input type="checkbox" id="dt-multi-${i}" ${t.multiple?'checked':''}></td>
+    <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
+  </tr>`;
+}
+
+function addDocTypeRow() {
+  const tbody = document.getElementById('dt-tbody');
+  tbody.insertAdjacentHTML('beforeend', docTypeRow(tbody.querySelectorAll('tr').length, {code:'',label:'',multiple:false}));
+}
+
+function collectDocumentTypes() {
+  return [...document.getElementById('dt-tbody').querySelectorAll('tr')].map(row => {
+    const inputs = row.querySelectorAll('input');
+    return { code: inputs[0]?.value||'', label: inputs[1]?.value||'', multiple: inputs[2]?.checked||false };
+  }).filter(t => t.code);
+}
+
+// ── Stage gates ───────────────────────────────────────────────
+function renderStageGates(gates, docTypes) {
+  _docTypeCodes = (docTypes||[]).map(t => t.code);
+  document.getElementById('gates-container').innerHTML = GATE_STAGES.map(stage => {
+    const required = gates?.[stage] || [];
+    const label = stage.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+    const checks = _docTypeCodes.map(code => `
+      <div class="cb-row">
+        <input type="checkbox" id="gate-${stage}-${code}" ${required.includes(code)?'checked':''}>
+        <label for="gate-${stage}-${code}">${code}</label>
+      </div>`).join('');
+    return `<div class="gate-card"><div class="gate-card-title">${label}</div><div class="gate-checks">${checks}</div></div>`;
+  }).join('');
+}
+
+function collectStageGates() {
+  const gates = {};
+  GATE_STAGES.forEach(stage => {
+    const required = _docTypeCodes.filter(code => document.getElementById(`gate-${stage}-${code}`)?.checked);
+    if (required.length) gates[stage] = required;
+  });
+  return gates;
+}
+
+// ── Populate all ──────────────────────────────────────────────
+function populateAll(c) {
+  document.getElementById('hdr-city').textContent = c.city?.name || 'Config';
+  // City
+  setVal('city-name',       c.city?.name);
+  setVal('city-state',      c.city?.state);
+  setVal('city-state-zip',  c.city?.city_state_zip);
+  setVal('city-clerk',      c.city?.city_clerk_name);
+  setVal('city-email',      c.city?.procurement_email);
+  setVal('city-phone',      c.city?.procurement_phone);
+  setVal('city-warehouse',  c.city?.warehouse_address);
+  // Thresholds
+  renderBidThresholds(c.bid_thresholds || {});
+  // Signing
+  renderSigningAuthority(c.signing_authority?.levels || []);
+  // P-Card
+  setVal('pcard-limit',  c.pcard?.single_transaction_limit);
+  renderPcardProhibited(c.pcard?.prohibited_item_types || []);
+  // Federal
+  setVal('fed-non-const', c.federal_funds?.micro_purchase_non_construction);
+  setVal('fed-const',     c.federal_funds?.micro_purchase_construction);
+  // Attorney review
+  document.getElementById('ar-always').checked = !!c.attorney_review?.always_required;
+  const arT = c.attorney_review?.phase2_app_generated_threshold;
+  setVal('ar-threshold', arT != null ? arT : '');
+  // Procurement methods
+  renderProcurementMethods(c.procurement_methods || {});
+  // Mail
+  setVal('mail-host',      c.mail?.smtp_host);
+  setVal('mail-port',      c.mail?.smtp_port);
+  setVal('mail-user',      c.mail?.smtp_user);
+  setVal('mail-from-name', c.mail?.smtp_from_name);
+  setVal('mail-from',      c.mail?.smtp_from);
+  setVal('mail-domain',    c.mail?.allowed_domain);
+  renderChips('chips-allowed', c.mail?.allowed_addresses || []);
+  // Keywords
+  renderChips('chips-hr',    c.hr_review_keywords || []);
+  renderChips('chips-maint', c.maintenance_redirect_keywords || []);
+  // Departments
+  renderChips('chips-depts', c.departments || []);
+  // Document types
+  renderDocumentTypes(c.document_types?.types || []);
+  // Stage gates (must come after doc types so _docTypeCodes is set)
+  renderStageGates(c.stage_gates || {}, c.document_types?.types || []);
+  // AI
+  setVal('ai-model', c.ai?.model);
+}
+
+// ── Collect all ───────────────────────────────────────────────
+function collectConfig() {
+  const c = JSON.parse(JSON.stringify(rawConfig));
+  c.city = { ...c.city,
+    name:               document.getElementById('city-name').value,
+    state:              document.getElementById('city-state').value,
+    city_state_zip:     document.getElementById('city-state-zip').value,
+    city_clerk_name:    document.getElementById('city-clerk').value,
+    procurement_email:  document.getElementById('city-email').value,
+    procurement_phone:  document.getElementById('city-phone').value,
+    warehouse_address:  document.getElementById('city-warehouse').value,
+  };
+  ITEM_TYPES.forEach(t => {
+    c.bid_thresholds[t] = parseFloat(document.getElementById('bt-'+t)?.value) || 0;
+  });
+  c.signing_authority = { ...c.signing_authority, levels: collectSigningLevels() };
+  c.pcard = { ...c.pcard,
+    single_transaction_limit: parseFloat(document.getElementById('pcard-limit').value) || 0,
+    prohibited_item_types:    collectPcardProhibited(),
+  };
+  c.federal_funds = { ...c.federal_funds,
+    micro_purchase_non_construction: parseFloat(document.getElementById('fed-non-const').value) || 0,
+    micro_purchase_construction:     parseFloat(document.getElementById('fed-const').value) || 0,
+  };
+  const arThresh = document.getElementById('ar-threshold').value.trim();
+  c.attorney_review = { ...c.attorney_review,
+    always_required:                !!document.getElementById('ar-always').checked,
+    phase2_app_generated_threshold: arThresh ? parseFloat(arThresh) : null,
+  };
+  c.procurement_methods = { ...c.procurement_methods, ...collectProcurementMethods() };
+  c.mail = { ...c.mail,
+    smtp_host:        document.getElementById('mail-host').value,
+    smtp_port:        parseInt(document.getElementById('mail-port').value) || 587,
+    smtp_user:        document.getElementById('mail-user').value,
+    smtp_from_name:   document.getElementById('mail-from-name').value,
+    smtp_from:        document.getElementById('mail-from').value,
+    allowed_domain:   document.getElementById('mail-domain').value,
+    allowed_addresses: getChips('chips-allowed'),
+  };
+  c.hr_review_keywords            = getChips('chips-hr');
+  c.maintenance_redirect_keywords = getChips('chips-maint');
+  c.departments                   = getChips('chips-depts');
+  c.document_types = { ...c.document_types, types: collectDocumentTypes() };
+  c.stage_gates    = collectStageGates();
+  c.ai = { ...c.ai, model: document.getElementById('ai-model').value };
+  return c;
+}
+
+// ── Load & save ───────────────────────────────────────────────
+async function loadConfig() {
+  try {
+    const res = await fetch('/api/admin/config');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    rawConfig = await res.json();
+    populateAll(rawConfig);
+  } catch(e) { setStatus('Failed to load config: ' + e.message, 'err'); }
+}
+
+async function saveConfig() {
+  setStatus('Saving…', '');
+  try {
+    const data = collectConfig();
+    const res = await fetch('/api/admin/config', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    rawConfig = data;
+    setStatus('Saved successfully', 'ok');
+    document.getElementById('hdr-city').textContent = data.city?.name || 'Config';
+  } catch(e) { setStatus('Save failed: ' + e.message, 'err'); }
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('save-status');
+  el.textContent = msg; el.className = cls;
+  if (cls === 'ok') setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+
+function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v ?? ''; }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+
+loadConfig();
+</script>
+</body>
+</html>

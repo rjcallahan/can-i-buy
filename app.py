@@ -5,7 +5,8 @@ import json
 import re
 import base64
 
-from flask import Flask, request, jsonify, send_from_directory
+import datetime
+from flask import Flask, request, jsonify, send_from_directory, Response
 from dotenv import load_dotenv
 import anthropic
 from anthropic.types import TextBlock
@@ -462,6 +463,48 @@ def send_ss_report():
 @app.route("/api/config/departments")
 def get_departments():
     return jsonify({"departments": cfg._get("departments")})
+
+
+# ── Admin config editor ───────────────────────────────────────
+
+def _admin_authorized() -> bool:
+    pwd = os.getenv("ADMIN_PASSWORD")
+    if not pwd:
+        return True
+    auth = request.authorization
+    return bool(auth and auth.password == pwd)
+
+
+@app.route("/admin/config")
+def admin_config_page():
+    if not _admin_authorized():
+        return Response(
+            "Unauthorized", 401,
+            {"WWW-Authenticate": 'Basic realm="Procurement Admin"'}
+        )
+    return send_from_directory("static", "admin-config.html")
+
+
+@app.route("/api/admin/config", methods=["GET"])
+def api_admin_config_get():
+    if not _admin_authorized():
+        return jsonify({"error": "Unauthorized"}), 401
+    with open(cfg._path, encoding="utf-8") as f:
+        return jsonify(json.load(f))
+
+
+@app.route("/api/admin/config", methods=["POST"])
+def api_admin_config_post():
+    if not _admin_authorized():
+        return jsonify({"error": "Unauthorized"}), 401
+    data = request.get_json()
+    if not isinstance(data, dict):
+        return jsonify({"error": "Invalid JSON"}), 400
+    data["_last_updated"] = datetime.date.today().isoformat()
+    with open(cfg._path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    cfg.reload()
+    return jsonify({"ok": True})
 
 
 # ── Vector store admin ────────────────────────────────────────
