@@ -2,6 +2,10 @@
   "_comment": "City of Palm Springs \u2014 Procurement Helper Configuration",
   "_last_updated": "2026-03-26",
   "_note": "All dollar amounts are in USD. Edit this file to update thresholds city-wide.",
+  "ai": {
+    "_comment": "AI model settings. Update model here to change across the entire application.",
+    "model": "claude-sonnet-4-20250514"
+  },
   "bid_thresholds": {
     "_comment": "Amounts AT OR ABOVE these values require competitive bidding",
     "supplies": 75000,
@@ -286,7 +290,9 @@
     "smtp_port": 587,
     "smtp_user": "",
     "smtp_from": "",
-    "smtp_from_name": "Procurement"
+    "smtp_from_name": "Procurement",
+    "allowed_domain": "@palmspringsca.gov",
+    "allowed_addresses": ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"]
   },
   "faa": {
     "_comment": "FAA-governed purchase rules \u2014 applies to AIP-funded or FAA-regulated airport purchases",

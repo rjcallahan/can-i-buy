@@ -239,6 +239,24 @@ class _Config:
         """Return keywords that trigger HR/union review."""
         return self._get("hr_review_keywords")
 
+    def ai_model(self, default: str = "claude-sonnet-4-20250514") -> str:
+        try:
+            return self._get("ai", "model") or default
+        except KeyError:
+            return default
+
+    def allowed_email_domain(self) -> str:
+        try:
+            return self._get("mail", "allowed_domain") or ""
+        except KeyError:
+            return ""
+
+    def allowed_email_addresses(self) -> list[str]:
+        try:
+            return self._get("mail", "allowed_addresses") or []
+        except KeyError:
+            return []
+
     def maintenance_redirect_keywords(self) -> list[str]:
         """Return keywords that redirect to city maintenance."""
         return self._get("maintenance_redirect_keywords")
