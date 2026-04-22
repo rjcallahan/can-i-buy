@@ -30,6 +30,9 @@ Test Documents/
 # macOS
 .DS_Store
 
+# Claude Code worktrees
+.claude/
+
 # IDEs
 .vscode/
 .idea/

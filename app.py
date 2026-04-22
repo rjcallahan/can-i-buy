@@ -18,7 +18,6 @@ load_dotenv()
 app = Flask(__name__, static_folder="static")
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-
 # ── Email helper ─────────────────────────────────────────────
 
 def send_email(recipient: str, subject: str, body: str,
