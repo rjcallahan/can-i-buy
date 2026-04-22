@@ -541,7 +541,7 @@ function collectConfig() {
 // ── Load & save ───────────────────────────────────────────────
 async function loadConfig() {
   try {
-    const res = await fetch('/api/admin/config');
+    const res = await fetch('/admin/config/data');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     rawConfig = await res.json();
     populateAll(rawConfig);
@@ -552,7 +552,7 @@ async function saveConfig() {
   setStatus('Saving…', '');
   try {
     const data = collectConfig();
-    const res = await fetch('/api/admin/config', {
+    const res = await fetch('/admin/config/data', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data),

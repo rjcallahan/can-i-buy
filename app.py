@@ -485,7 +485,7 @@ def admin_config_page():
     return send_from_directory("static", "admin-config.html")
 
 
-@app.route("/api/admin/config", methods=["GET"])
+@app.route("/admin/config/data", methods=["GET"])
 def api_admin_config_get():
     if not _admin_authorized():
         return jsonify({"error": "Unauthorized"}), 401
@@ -493,7 +493,7 @@ def api_admin_config_get():
         return jsonify(json.load(f))
 
 
-@app.route("/api/admin/config", methods=["POST"])
+@app.route("/admin/config/data", methods=["POST"])
 def api_admin_config_post():
     if not _admin_authorized():
         return jsonify({"error": "Unauthorized"}), 401
