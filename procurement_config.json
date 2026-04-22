@@ -1,6 +1,6 @@
 {
-  "_comment": "City of Palm Springs \u2014 Procurement Helper Configuration",
-  "_last_updated": "2026-03-26",
+  "_comment": "City of Palm Springs — Procurement Helper Configuration",
+  "_last_updated": "2026-04-22",
   "_note": "All dollar amounts are in USD. Edit this file to update thresholds city-wide.",
   "ai": {
     "_comment": "AI model settings. Update model here to change across the entire application.",
@@ -28,7 +28,7 @@
       },
       {
         "max": 74999.99,
-        "method": "Informal Process \u2014 3 Quotes",
+        "method": "Informal Process — 3 Quotes",
         "process": "Obtain minimum three written quotes. No formal bid required."
       },
       {
@@ -45,7 +45,7 @@
       },
       {
         "max": 74999.99,
-        "method": "Informal Process \u2014 3 Quotes",
+        "method": "Informal Process — 3 Quotes",
         "process": "Obtain minimum three written quotes."
       },
       {
@@ -62,7 +62,7 @@
       },
       {
         "max": 74999.99,
-        "method": "Informal Process \u2014 3 Quotes",
+        "method": "Informal Process — 3 Quotes",
         "process": "Three written quotes. IT Director approval required."
       },
       {
@@ -79,7 +79,7 @@
       },
       {
         "max": 74999.99,
-        "method": "Informal Process \u2014 3 Quotes",
+        "method": "Informal Process — 3 Quotes",
         "process": "Three quotes required. IT Director approval."
       },
       {
@@ -96,7 +96,7 @@
       },
       {
         "max": 74999.99,
-        "method": "Informal Process \u2014 3 Quotes",
+        "method": "Informal Process — 3 Quotes",
         "process": "Three written quotes required. Vendor quote and basic service agreement sufficient."
       },
       {
@@ -113,7 +113,7 @@
       },
       {
         "max": 74999.99,
-        "method": "Informal Process \u2014 3 Quotes",
+        "method": "Informal Process — 3 Quotes",
         "process": "Three quotes. Contract and insurance required. Not P-Card eligible."
       },
       {
@@ -154,7 +154,7 @@
       },
       {
         "max": 74999.99,
-        "method": "Informal Process \u2014 3 Quotes",
+        "method": "Informal Process — 3 Quotes",
         "process": "Three quotes required."
       },
       {
@@ -194,12 +194,6 @@
       }
     ]
   },
-  "attorney_review": {
-    "_comment": "Controls when City Attorney review is required",
-    "always_required": true,
-    "phase2_app_generated_threshold": null,
-    "_note": "phase2_app_generated_threshold: set a dollar amount when phase 2 is built to bypass attorney review for app-generated contracts below that amount. null = always required."
-  },
   "pcard": {
     "_comment": "P-Card rules",
     "prohibited_item_types": [
@@ -211,59 +205,8 @@
     "single_transaction_limit": 2500,
     "_note": "single_transaction_limit is the default per-transaction cap. Individual card limits may differ."
   },
-  "federal_funds": {
-    "_comment": "Micro-purchase thresholds when federal funds are involved (2 CFR 200.320)",
-    "micro_purchase_construction": 2000,
-    "micro_purchase_non_construction": 3000
-  },
-  "rfq_document_thresholds": {
-    "_comment": "Which document type is appropriate at which dollar amount",
-    "iqr_max": 74999.99,
-    "rfp_min": 75000
-  },
-  "hr_review_keywords": [
-    "training",
-    "instruction",
-    "coaching",
-    "staffing",
-    "labor",
-    "grounds",
-    "landscaping",
-    "janitorial",
-    "cleaning service",
-    "security guard",
-    "guard service",
-    "driver",
-    "custodial",
-    "k9",
-    "canine",
-    "dog training",
-    "inspection service",
-    "maintenance contract",
-    "facility management",
-    "parking enforcement"
-  ],
-  "maintenance_redirect_keywords": [
-    "fix broken door",
-    "fix broken window",
-    "replace light bulb",
-    "replace ceiling tile",
-    "patch roof",
-    "patch wall",
-    "repair plumbing",
-    "unclog drain",
-    "hvac filter",
-    "replace faucet",
-    "electrical outlet repair",
-    "floor repair",
-    "replace carpet",
-    "paint wall",
-    "paint room",
-    "building repair",
-    "facility repair"
-  ],
   "mail": {
-    "_comment": "Outbound email (Zoho SMTP). Set smtp_password via SMTP_PASSWORD env var \u2014 never store passwords here.",
+    "_comment": "Outbound email (Zoho SMTP). Set smtp_password via SMTP_PASSWORD env var — never store passwords here.",
     "smtp_host": "smtp.zoho.com",
     "smtp_port": 587,
     "smtp_user": "",
@@ -271,19 +214,6 @@
     "smtp_from_name": "Procurement",
     "allowed_domain": "@palmspringsca.gov",
     "allowed_addresses": ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"]
-  },
-  "faa": {
-    "_comment": "FAA-governed purchase rules \u2014 applies to AIP-funded or FAA-regulated airport purchases",
-    "micro_purchase_threshold": 10000,
-    "simplified_acquisition_threshold": 250000,
-    "davis_bacon_construction_threshold": 2000,
-    "requirements": {
-      "buy_american": "Buy American provisions apply (49 U.S.C. \u00a7 50101). Materials and equipment must be produced in the U.S. unless an FAA waiver is obtained. Be sure to verify this and prepare appropriate waivers if required.",
-      "dbe": "Disadvantaged Business Enterprise (DBE) participation goals apply (49 CFR Part 26). Contact Procurement for current DBE goal percentage.",
-      "contract_clauses": "FAA mandatory contract provisions and certifications must be included in all contracts (AC 150/5370-10).",
-      "independent_estimate": "An independent fee or cost estimate is required for professional services contracts.",
-      "faa_approval": "Certain capital expenditures may require FAA pre-approval. Confirm with Airport Administration before proceeding."
-    }
   },
   "departments": [
     "Airport",
@@ -310,50 +240,5 @@
     "procurement_email": "procurement@palmspringsca.gov",
     "procurement_phone": "(760) 323-8264",
     "warehouse_address": "Contact Procurement for warehouse address"
-  },
-  "document_types": {
-    "_comment": "Attachment document types. Delete only if no attachments use the type.",
-    "types": [
-      {
-        "code": "quote",
-        "label": "Vendor Quote",
-        "multiple": true
-      },
-      {
-        "code": "contract",
-        "label": "Contract Document",
-        "multiple": false
-      },
-      {
-        "code": "rfq",
-        "label": "Request for Quote",
-        "multiple": false
-      },
-      {
-        "code": "ifb",
-        "label": "Informal Bid Request",
-        "multiple": false
-      },
-      {
-        "code": "insurance",
-        "label": "Insurance Certificate",
-        "multiple": true
-      },
-      {
-        "code": "license",
-        "label": "License / Certification",
-        "multiple": true
-      },
-      {
-        "code": "faa",
-        "label": "FAA Document",
-        "multiple": true
-      },
-      {
-        "code": "other",
-        "label": "Other",
-        "multiple": true
-      }
-    ]
   }
 }

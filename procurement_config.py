@@ -151,27 +151,6 @@ class _Config:
         # Should never reach here given city_council max = 999999999
         return "city_council"
 
-    # ── Attorney review ───────────────────────────────────────
-
-    def attorney_review_required(self, is_pcard: bool = False,
-                                  app_generated: bool = False,
-                                  amount: float = 0) -> bool:
-        """
-        Return True if attorney review is required.
-        Phase 2: app_generated contracts under the threshold may be exempt.
-        """
-        if is_pcard:
-            return False
-
-        ar = self._get("attorney_review")
-        if ar.get("always_required", True):
-            # Check phase 2 bypass
-            threshold = ar.get("phase2_app_generated_threshold")
-            if app_generated and threshold is not None:
-                return amount >= float(threshold)
-            return True
-        return False
-
     # ── P-Card ────────────────────────────────────────────────
 
     def pcard_prohibited_types(self) -> list[str]:
@@ -185,43 +164,6 @@ class _Config:
     def pcard_transaction_limit(self) -> float:
         """Return the default per-transaction P-Card limit."""
         return float(self._get("pcard", "single_transaction_limit"))
-
-    # ── Federal funds ─────────────────────────────────────────
-
-    def federal_micro_purchase_limit(self,
-                                      is_construction: bool) -> float:
-        """Return the federal micro-purchase threshold."""
-        key = ("micro_purchase_construction" if is_construction
-               else "micro_purchase_non_construction")
-        return float(self._get("federal_funds", key))
-
-    # ── RFQ document thresholds ───────────────────────────────
-
-    def iqr_max_amount(self) -> float:
-        """Maximum amount for an IQR document."""
-        return float(self._get("rfq_document_thresholds", "iqr_max"))
-
-    def rfp_min_amount(self) -> float:
-        """Minimum amount requiring an RFP document."""
-        return float(self._get("rfq_document_thresholds", "rfp_min"))
-
-    def suggested_rfq_template(self, item_type: str,
-                                amount: float) -> str:
-        """
-        Suggest the appropriate RFQ template code based on amount.
-        Returns IQR_SERVICES, IQR_SUPPLIES, or RFP_GENERAL.
-        Caller should check for aviation context separately.
-        """
-        if amount >= self.rfp_min_amount():
-            return "RFP_GENERAL"
-        supply_types = {"supplies", "equipment", "it_equipment", "it_software"}
-        return "IQR_SUPPLIES" if item_type in supply_types else "IQR_SERVICES"
-
-    # ── Keywords ──────────────────────────────────────────────
-
-    def hr_review_keywords(self) -> list[str]:
-        """Return keywords that trigger HR/union review."""
-        return self._get("hr_review_keywords")
 
     def ai_model(self, default: str = "claude-sonnet-4-20250514") -> str:
         try:
@@ -241,10 +183,6 @@ class _Config:
         except KeyError:
             return []
 
-    def maintenance_redirect_keywords(self) -> list[str]:
-        """Return keywords that redirect to city maintenance."""
-        return self._get("maintenance_redirect_keywords")
-
     # ── City defaults ─────────────────────────────────────────
 
     def city(self, key: str, default: str = "") -> str:
@@ -259,23 +197,6 @@ class _Config:
 
     def city_state_zip(self) -> str:
         return self.city("city_state_zip", "Palm Springs, CA 92262")
-
-    # ── Document types ───────────────────────────────────────
-
-    def document_types(self) -> list[dict]:
-        """Return all document types. Each: {code, label, multiple}"""
-        return self._get("document_types", "types")
-
-    def document_type_codes(self) -> list[str]:
-        """Return just the codes list."""
-        return [t["code"] for t in self.document_types()]
-
-    def document_type_label(self, code: str) -> str:
-        """Return display label for a document type code."""
-        for t in self.document_types():
-            if t["code"] == code:
-                return t["label"]
-        return code.replace("_", " ").title()
 
     # ── Raw access ────────────────────────────────────────────
 
@@ -312,8 +233,6 @@ except FileNotFoundError as e:
 
 BID_THRESHOLDS       = cfg.all_bid_thresholds()       if cfg._data else {}
 SIGNING_AUTHORITY    = cfg.signing_authority_levels()  if cfg._data else []
-HR_REVIEW_KEYWORDS   = cfg.hr_review_keywords()        if cfg._data else []
-MAINTENANCE_KEYWORDS = cfg.maintenance_redirect_keywords() if cfg._data else []
 PCARD_PROHIBITED     = cfg.pcard_prohibited_types()    if cfg._data else []
 
 
@@ -329,11 +248,6 @@ if __name__ == "__main__":
         print(f"  {level['role']:<15} "
               f"non-public ≤ ${level['non_public_max']:>12,.0f}  "
               f"public ≤ ${level['public_max']:>12,.0f}")
-    print()
-    print("Attorney review always required:",
-          cfg.attorney_review_required())
-    print("Attorney review (P-Card):",
-          cfg.attorney_review_required(is_pcard=True))
     print()
     print("Approval role tests:")
     for amt, pub in [(10000, False), (30000, False), (60000, False),

@@ -76,13 +76,10 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
     <button class="tab-btn active" onclick="switchTab(this,'city')">City Info</button>
     <button class="tab-btn" onclick="switchTab(this,'thresholds')">Bid Thresholds</button>
     <button class="tab-btn" onclick="switchTab(this,'signing')">Signing Authority</button>
-    <button class="tab-btn" onclick="switchTab(this,'pcard')">P-Card &amp; Federal</button>
-    <button class="tab-btn" onclick="switchTab(this,'attorney')">Attorney Review</button>
+    <button class="tab-btn" onclick="switchTab(this,'pcard')">P-Card</button>
     <button class="tab-btn" onclick="switchTab(this,'methods')">Proc. Methods</button>
     <button class="tab-btn" onclick="switchTab(this,'mail')">Mail</button>
-    <button class="tab-btn" onclick="switchTab(this,'keywords')">Keywords</button>
     <button class="tab-btn" onclick="switchTab(this,'departments')">Departments</button>
-    <button class="tab-btn" onclick="switchTab(this,'documents')">Document Types</button>
     <button class="tab-btn" onclick="switchTab(this,'ai')">AI Model</button>
   </nav>
 
@@ -139,29 +136,6 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
         <label>Prohibited Item Types</label>
         <div class="cb-group" id="pcard-prohibited"></div>
       </div>
-      <div class="spacer"></div>
-      <div class="section-title">Federal Funds — Micro-Purchase Thresholds</div>
-      <p class="hint">2 CFR 200.320 thresholds when federal funds are involved.</p>
-      <div class="grid-2">
-        <div class="field"><label>Non-Construction ($)</label><input id="fed-non-const" type="number" step="500"></div>
-        <div class="field"><label>Construction ($)</label><input id="fed-const" type="number" step="500"></div>
-      </div>
-    </div>
-
-    <!-- ATTORNEY REVIEW -->
-    <div class="panel" id="panel-attorney">
-      <div class="section-title">Attorney Review</div>
-      <div class="field">
-        <div class="cb-row" style="margin-bottom:12px">
-          <input type="checkbox" id="ar-always">
-          <label for="ar-always" style="font-size:0.875rem;cursor:pointer">Always required</label>
-        </div>
-      </div>
-      <div class="field" style="max-width:320px">
-        <label>Phase 2 bypass threshold ($) <span style="font-weight:400;text-transform:none;letter-spacing:0">— leave blank for null</span></label>
-        <input id="ar-threshold" type="number" step="1000" placeholder="null — not yet active">
-      </div>
-      <p class="hint" style="margin-top:6px">When set, app-generated contracts <em>below</em> this amount may skip attorney review in phase 2.</p>
     </div>
 
     <!-- PROCUREMENT METHODS -->
@@ -197,29 +171,6 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
       </div>
     </div>
 
-    <!-- KEYWORDS -->
-    <div class="panel" id="panel-keywords">
-      <div class="section-title">HR Review Keywords</div>
-      <p class="hint">Purchases containing these terms are flagged for HR / union review.</p>
-      <div class="chips-wrap">
-        <div class="chips" id="chips-hr"></div>
-        <div class="chip-add">
-          <input id="hr-input" type="text" placeholder="Add keyword…" onkeydown="if(event.key==='Enter'){addChip('chips-hr','hr-input');event.preventDefault()}">
-          <button class="btn btn-sm btn-ghost" onclick="addChip('chips-hr','hr-input')">Add</button>
-        </div>
-      </div>
-      <div class="spacer"></div>
-      <div class="section-title">Maintenance Redirect Keywords</div>
-      <p class="hint">Purchases matching these phrases are redirected to city maintenance.</p>
-      <div class="chips-wrap">
-        <div class="chips" id="chips-maint"></div>
-        <div class="chip-add">
-          <input id="maint-input" type="text" placeholder="Add phrase…" onkeydown="if(event.key==='Enter'){addChip('chips-maint','maint-input');event.preventDefault()}">
-          <button class="btn btn-sm btn-ghost" onclick="addChip('chips-maint','maint-input')">Add</button>
-        </div>
-      </div>
-    </div>
-
     <!-- DEPARTMENTS -->
     <div class="panel" id="panel-departments">
       <div class="section-title">Departments</div>
@@ -231,19 +182,6 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
           <button class="btn btn-sm btn-ghost" onclick="addChip('chips-depts','dept-input')">Add</button>
         </div>
       </div>
-    </div>
-
-    <!-- DOCUMENT TYPES -->
-    <div class="panel" id="panel-documents">
-      <div class="section-title">Document Types</div>
-      <p class="hint">Attachment types available when uploading supporting documents.</p>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Code</th><th>Label</th><th style="width:80px;text-align:center">Multiple</th><th style="width:42px"></th></tr></thead>
-          <tbody id="dt-tbody"></tbody>
-        </table>
-      </div>
-      <button class="btn btn-ghost btn-sm btn-add" onclick="addDocTypeRow()">+ Add Type</button>
     </div>
 
     <!-- AI -->
@@ -419,32 +357,6 @@ function collectProcurementMethods() {
   return result;
 }
 
-// ── Document types ────────────────────────────────────────────
-function renderDocumentTypes(types) {
-  document.getElementById('dt-tbody').innerHTML = (types||[]).map((t,i) => docTypeRow(i,t)).join('');
-}
-
-function docTypeRow(i, t) {
-  return `<tr>
-    <td><input type="text" id="dt-code-${i}"  value="${esc(t.code)}"  style="width:120px"></td>
-    <td><input type="text" id="dt-label-${i}" value="${esc(t.label)}"></td>
-    <td style="text-align:center"><input type="checkbox" id="dt-multi-${i}" ${t.multiple?'checked':''}></td>
-    <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
-  </tr>`;
-}
-
-function addDocTypeRow() {
-  const tbody = document.getElementById('dt-tbody');
-  tbody.insertAdjacentHTML('beforeend', docTypeRow(tbody.querySelectorAll('tr').length, {code:'',label:'',multiple:false}));
-}
-
-function collectDocumentTypes() {
-  return [...document.getElementById('dt-tbody').querySelectorAll('tr')].map(row => {
-    const inputs = row.querySelectorAll('input');
-    return { code: inputs[0]?.value||'', label: inputs[1]?.value||'', multiple: inputs[2]?.checked||false };
-  }).filter(t => t.code);
-}
-
 // ── Populate all ──────────────────────────────────────────────
 function populateAll(c) {
   document.getElementById('hdr-city').textContent = c.city?.name || 'Config';
@@ -463,13 +375,6 @@ function populateAll(c) {
   // P-Card
   setVal('pcard-limit',  c.pcard?.single_transaction_limit);
   renderPcardProhibited(c.pcard?.prohibited_item_types || []);
-  // Federal
-  setVal('fed-non-const', c.federal_funds?.micro_purchase_non_construction);
-  setVal('fed-const',     c.federal_funds?.micro_purchase_construction);
-  // Attorney review
-  document.getElementById('ar-always').checked = !!c.attorney_review?.always_required;
-  const arT = c.attorney_review?.phase2_app_generated_threshold;
-  setVal('ar-threshold', arT != null ? arT : '');
   // Procurement methods
   renderProcurementMethods(c.procurement_methods || {});
   // Mail
@@ -480,13 +385,8 @@ function populateAll(c) {
   setVal('mail-from',      c.mail?.smtp_from);
   setVal('mail-domain',    c.mail?.allowed_domain);
   renderChips('chips-allowed', c.mail?.allowed_addresses || []);
-  // Keywords
-  renderChips('chips-hr',    c.hr_review_keywords || []);
-  renderChips('chips-maint', c.maintenance_redirect_keywords || []);
   // Departments
   renderChips('chips-depts', c.departments || []);
-  // Document types
-  renderDocumentTypes(c.document_types?.types || []);
   // AI
   setVal('ai-model', c.ai?.model);
 }
@@ -511,15 +411,6 @@ function collectConfig() {
     single_transaction_limit: parseFloat(document.getElementById('pcard-limit').value) || 0,
     prohibited_item_types:    collectPcardProhibited(),
   };
-  c.federal_funds = { ...c.federal_funds,
-    micro_purchase_non_construction: parseFloat(document.getElementById('fed-non-const').value) || 0,
-    micro_purchase_construction:     parseFloat(document.getElementById('fed-const').value) || 0,
-  };
-  const arThresh = document.getElementById('ar-threshold').value.trim();
-  c.attorney_review = { ...c.attorney_review,
-    always_required:                !!document.getElementById('ar-always').checked,
-    phase2_app_generated_threshold: arThresh ? parseFloat(arThresh) : null,
-  };
   c.procurement_methods = { ...c.procurement_methods, ...collectProcurementMethods() };
   c.mail = { ...c.mail,
     smtp_host:        document.getElementById('mail-host').value,
@@ -530,10 +421,7 @@ function collectConfig() {
     allowed_domain:   document.getElementById('mail-domain').value,
     allowed_addresses: getChips('chips-allowed'),
   };
-  c.hr_review_keywords            = getChips('chips-hr');
-  c.maintenance_redirect_keywords = getChips('chips-maint');
-  c.departments                   = getChips('chips-depts');
-  c.document_types = { ...c.document_types, types: collectDocumentTypes() };
+  c.departments = getChips('chips-depts');
   c.ai = { ...c.ai, model: document.getElementById('ai-model').value };
   return c;
 }
