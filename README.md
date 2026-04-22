@@ -1,4 +1,5 @@
 # New City Deployment Checklist
+
 ### CAPA Procurement Gateway — Can-I-Buy
 
 ---
@@ -48,14 +49,14 @@ Edit **`data/procurement_config.json`** — this is the only file that needs cit
 - [ ] Add a **Volume** mounted at `/data`
 - [ ] Set all environment variables:
 
-| Variable | Value |
-|---|---|
-| `ANTHROPIC_API_KEY` | Anthropic API key |
-| `RESEND_API_KEY` | Key from Resend step above |
-| `SMTP_FROM` | Sending email address (e.g. `ron@capa.consulting`) |
-| `SMTP_FROM_NAME` | Display name (e.g. `"CAPA Procurement Gateway"`) |
-| `BASE_URL` | `https://cathedralcity.capa.consulting` (set after DNS) |
-| `DATA_DIR` | `/data` |
+| Variable            | Value                                                   |
+| ------------------- | ------------------------------------------------------- |
+| `ANTHROPIC_API_KEY` | Anthropic API key                                       |
+| `RESEND_API_KEY`    | Key from Resend step above                              |
+| `SMTP_FROM`         | Sending email address (e.g. `ron@capa.consulting`)      |
+| `SMTP_FROM_NAME`    | Display name (e.g. `"CAPA Procurement Gateway"`)        |
+| `BASE_URL`          | `https://cathedralcity.capa.consulting` (set after DNS) |
+| `DATA_DIR`          | `/data`                                                 |
 
 - [ ] Deploy and confirm build succeeds
 - [ ] Note the Railway-assigned URL (e.g. `web-production-xxxxx.up.railway.app`)
@@ -67,8 +68,8 @@ Edit **`data/procurement_config.json`** — this is the only file that needs cit
 - [ ] Log into Cloudflare → `capa.consulting`
 - [ ] Add a CNAME record for the new city subdomain:
 
-| Type | Name | Target | Proxy |
-|---|---|---|---|
+| Type  | Name            | Target                                | Proxy   |
+| ----- | --------------- | ------------------------------------- | ------- |
 | CNAME | `cathedralcity` | `web-production-xxxxx.up.railway.app` | Proxied |
 
 - [ ] Add Resend DNS records if using a new sending domain:
@@ -105,3 +106,7 @@ Edit **`data/procurement_config.json`** — this is the only file that needs cit
 - Each city gets its own Railway service, volume, and subdomain — they are fully independent deployments.
 - The `documents/` folder contains reference policy documents used to build the AI prompt context. Update these for the new city if their policies differ significantly.
 - Do not share API keys between city deployments.
+
+## Testing
+
+- python -m pytest
