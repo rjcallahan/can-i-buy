@@ -25,7 +25,6 @@ Edit **`data/procurement_config.json`** — this is the only file that needs cit
 - [ ] `bid_thresholds` — update if city thresholds differ from Palm Springs
 - [ ] `signing_authority.levels` — update dollar limits per role if different
 - [ ] `pcard.single_transaction_limit` — update if different
-- [ ] `sla_days` — update workflow stage SLA days if different
 - [ ] `hr_review_keywords` — add/remove keywords relevant to this city
 - [ ] `maintenance_redirect_keywords` — update as needed
 

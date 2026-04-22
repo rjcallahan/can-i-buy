@@ -11,7 +11,6 @@ Usage
 
     threshold = cfg.bid_threshold("supplies")        # 75000
     methods   = cfg.procurement_methods("equipment") # list of tier dicts
-    sla       = cfg.sla_days("attorney_review")      # 10
     levels    = cfg.signing_authority_levels()        # list of level dicts
     role      = cfg.approval_role(80000, False)       # "city_manager"
 
@@ -196,21 +195,6 @@ class _Config:
                else "micro_purchase_non_construction")
         return float(self._get("federal_funds", key))
 
-    # ── SLA days ──────────────────────────────────────────────
-
-    def sla_days(self, stage_code: str) -> int:
-        """
-        Return SLA days for a stage. Returns 5 if stage not found
-        (safe default matching the DB column default).
-        """
-        sla = self._get("sla_days")
-        return int(sla.get(stage_code, 5))
-
-    def all_sla_days(self) -> dict:
-        """Return the full sla_days dict."""
-        return {k: v for k, v in self._get("sla_days").items()
-                if not k.startswith("_")}
-
     # ── RFQ document thresholds ───────────────────────────────
 
     def iqr_max_amount(self) -> float:
@@ -389,10 +373,6 @@ if __name__ == "__main__":
         print(f"  {level['role']:<15} "
               f"non-public ≤ ${level['non_public_max']:>12,.0f}  "
               f"public ≤ ${level['public_max']:>12,.0f}")
-    print()
-    print("SLA days:")
-    for stage, days in cfg.all_sla_days().items():
-        print(f"  {stage:<25} {days} days")
     print()
     print("Attorney review always required:",
           cfg.attorney_review_required())

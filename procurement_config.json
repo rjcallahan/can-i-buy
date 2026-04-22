@@ -216,28 +216,6 @@
     "micro_purchase_construction": 2000,
     "micro_purchase_non_construction": 3000
   },
-  "sla_days": {
-    "_comment": "Default SLA in business days per workflow stage. 0 = no SLA.",
-    "draft": 0,
-    "procurement_review": 2,
-    "hr_union_review": 45,
-    "it_review": 5,
-    "engineering_review": 5,
-    "attorney_review": 10,
-    "spc_review": 5,
-    "contract_development": 2,
-    "bid_development": 10,
-    "bid_process": 30,
-    "bid_award": 5,
-    "bid_contract": 2,
-    "director_approval": 5,
-    "acm_approval": 5,
-    "manager_approval": 5,
-    "council_approval": 30,
-    "complete": 0,
-    "rejected": 0,
-    "returned_to_requester": 0
-  },
   "rfq_document_thresholds": {
     "_comment": "Which document type is appropriate at which dollar amount",
     "iqr_max": 74999.99,
