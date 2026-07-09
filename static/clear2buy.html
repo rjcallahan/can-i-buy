@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- City of Palm Springs — Clear2Buy intake form -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -418,6 +419,24 @@
         }
       })();
 
+      // ── Load mail domain config ────────────────────────────────
+      var FALLBACK_MAIL_DOMAIN = "@palmspringsca.gov";
+      var FALLBACK_MAIL_ALLOWED_ADDRESSES = [];
+      var MAIL_DOMAIN = FALLBACK_MAIL_DOMAIN;
+      var MAIL_ALLOWED_ADDRESSES = FALLBACK_MAIL_ALLOWED_ADDRESSES;
+
+      (async function loadMailDomain() {
+        try {
+          const res = await fetch("/api/config/mail-domain");
+          const data = await res.json();
+          MAIL_DOMAIN = data.allowed_domain || FALLBACK_MAIL_DOMAIN;
+          MAIL_ALLOWED_ADDRESSES =
+            data.allowed_addresses || FALLBACK_MAIL_ALLOWED_ADDRESSES;
+        } catch (e) {
+          console.warn("Mail domain API unavailable, using fallback:", e);
+        }
+      })();
+
       // ── Amount hint ──────────────────────────────────────────
       const rules = [
         { max: 2500, method: "Single Quote / P-Card (if eligible)" },
@@ -621,9 +640,7 @@
           </div>`;
         })();
 
-        const approvalHTML = buildApprovalHTML(
-          r.approval_chain || computeApprovalChain(data.amount, data.item_type),
-        );
+        const approvalHTML = buildApprovalHTML(r.approval_chain);
 
         const faaHTML = (() => {
           if (!r.faa_notes) return "";
@@ -667,7 +684,7 @@
                 <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
                   <div style="flex:1;min-width:220px">
                     <input type="email" id="report-email"
-                      placeholder="you@palmspringsca.gov"
+                      placeholder="you${MAIL_DOMAIN}"
                       style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #c8d6e5;
                              border-radius:6px;font-size:14px;outline:none;"
                       oninput="clearReportEmailError()"
@@ -706,78 +723,6 @@
           </div>`;
         panel.style.display = "block";
         document.getElementById("start-over").style.display = "block";
-      }
-
-      // ── Approval chain computation ────────────────────────────
-      // Mirrors procurement_config.json signing_authority levels
-      var SIGNING_LEVELS = [
-        {
-          role: "director",
-          label: "Department Director",
-          nonPublicMax: 25000,
-          publicMax: 60000,
-        },
-        {
-          role: "acm",
-          label: "Assistant / Deputy City Manager",
-          nonPublicMax: 50000,
-          publicMax: 60000,
-        },
-        {
-          role: "city_manager",
-          label: "City Manager",
-          nonPublicMax: 150000,
-          publicMax: 220000,
-        },
-        {
-          role: "city_council",
-          label: "City Council",
-          nonPublicMax: 1e9,
-          publicMax: 1e9,
-        },
-      ];
-      var IT_TYPES = ["it_equipment", "it_software"];
-
-      function computeApprovalChain(amount, itemType) {
-        amount = parseFloat(amount) || 0;
-        var isPublic = itemType === "construction";
-        var maxKey = isPublic ? "publicMax" : "nonPublicMax";
-        var reqIdx = SIGNING_LEVELS.length - 1;
-        for (var i = 0; i < SIGNING_LEVELS.length; i++) {
-          if (amount <= SIGNING_LEVELS[i][maxKey]) {
-            reqIdx = i;
-            break;
-          }
-        }
-        var isIT = IT_TYPES.indexOf(itemType) !== -1;
-        var deptHead = isIT
-          ? { role: "it_director", label: "IT Director", note: "" }
-          : { role: "director", label: "Department Director", note: "" };
-
-        if (reqIdx === 0) {
-          return [
-            {
-              role: deptHead.role,
-              label: deptHead.label,
-              note: deptHead.note,
-              approves: true,
-            },
-          ];
-        }
-        return [
-          {
-            role: deptHead.role,
-            label: deptHead.label,
-            note: deptHead.note,
-            approves: false,
-          },
-          {
-            role: SIGNING_LEVELS[reqIdx].role,
-            label: SIGNING_LEVELS[reqIdx].label,
-            note: "",
-            approves: true,
-          },
-        ];
       }
 
       // ── Approval chain renderer ───────────────────────────────
@@ -877,9 +822,8 @@
           return;
         }
         // Validate domain
-        const allowed = ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"];
-        if (!email.endsWith("@palmspringsca.gov") && !allowed.includes(email)) {
-          showReportEmailError("Must be a @palmspringsca.gov address.");
+        if (!email.endsWith(MAIL_DOMAIN) && !MAIL_ALLOWED_ADDRESSES.includes(email)) {
+          showReportEmailError(`Must be a ${MAIL_DOMAIN} address.`);
           return;
         }
 
@@ -1062,7 +1006,7 @@
           '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #e8eef6">' +
           '<div style="font-size:12px;font-weight:600;color:#1f3864;margin-bottom:6px">📧 Email this analysis</div>' +
           '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-          '<input type="email" id="ss-email" placeholder="you@palmspringsca.gov" oninput="clearSsEmailErr()"' +
+          '<input type="email" id="ss-email" placeholder="you' + MAIL_DOMAIN + '" oninput="clearSsEmailErr()"' +
           ' style="flex:1;min-width:200px;padding:7px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;outline:none" />' +
           '<button type="button" onclick="sendSsReport()"' +
           ' style="padding:7px 16px;background:#2e5496;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap"' +
@@ -1090,7 +1034,6 @@
         var errEl = document.getElementById("ss-email-err");
         var email = (emailEl ? emailEl.value : "").trim().toLowerCase();
         var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        var allowed = ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"];
 
         if (!emailRe.test(email)) {
           if (errEl) {
@@ -1100,9 +1043,9 @@
           if (emailEl) emailEl.style.borderColor = "#c0392b";
           return;
         }
-        if (!email.endsWith("@palmspringsca.gov") && !allowed.includes(email)) {
+        if (!email.endsWith(MAIL_DOMAIN) && !MAIL_ALLOWED_ADDRESSES.includes(email)) {
           if (errEl) {
-            errEl.textContent = "Must be a @palmspringsca.gov address.";
+            errEl.textContent = `Must be a ${MAIL_DOMAIN} address.`;
             errEl.style.display = "block";
           }
           if (emailEl) emailEl.style.borderColor = "#c0392b";

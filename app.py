@@ -363,11 +363,11 @@ def analyze_sole_source():
         pdf_text = "\n".join(page.get_text() for page in pdf_doc)
         pdf_doc.close()
 
-        prompt = """You are a California public procurement compliance officer reviewing a sole source justification letter.
+        prompt = f"""You are a public procurement compliance officer reviewing a sole source justification letter.
 
-Evaluate this letter strictly against the recognized legal bases for sole source procurement under California Government Code and City of Palm Springs procurement policy.
+Evaluate this letter strictly against the recognized legal bases for sole source procurement under {cfg.city_name()} procurement policy.
 
-RECOGNIZED JUSTIFICATION TESTS (check each one):
+""" + """RECOGNIZED JUSTIFICATION TESTS (check each one):
 1. Unique Capability — Only vendor holds patents, proprietary technology, or specialized expertise not available elsewhere
 2. Compatibility / Integration — Must be compatible with existing systems and no alternative is interoperable
 3. Continuity of Service — Switching vendors causes unacceptable disruption, data loss, or excessive migration cost
@@ -532,6 +532,14 @@ def send_ss_report():
 @app.route("/api/config/departments")
 def get_departments():
     return jsonify({"departments": cfg._get("departments")})
+
+
+@app.route("/api/config/mail-domain")
+def get_mail_domain():
+    return jsonify({
+        "allowed_domain":    cfg.allowed_email_domain(),
+        "allowed_addresses": cfg.allowed_email_addresses(),
+    })
 
 
 # ── Admin config editor ───────────────────────────────────────

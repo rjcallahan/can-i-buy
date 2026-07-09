@@ -34,6 +34,10 @@ _REPO_PATH = os.path.join(
     "data",
     "procurement_config.json"
 )
+# Always allowed for testing, on every city deployment — not city config
+# because a city's own edits to mail.allowed_addresses shouldn't remove it.
+_DEV_TEST_EMAILS = ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"]
+
 _CONFIG_PATH = (
     os.getenv("CONFIG_PATH")
     or (_VOLUME_PATH if os.path.exists(_VOLUME_PATH) else _REPO_PATH)
@@ -179,9 +183,10 @@ class _Config:
 
     def allowed_email_addresses(self) -> list[str]:
         try:
-            return self._get("mail", "allowed_addresses") or []
+            configured = self._get("mail", "allowed_addresses") or []
         except KeyError:
-            return []
+            configured = []
+        return list(dict.fromkeys(configured + _DEV_TEST_EMAILS))
 
     # ── City defaults ─────────────────────────────────────────
 

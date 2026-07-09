@@ -51,7 +51,7 @@ Edit **`data/procurement_config.json`** — this is the only file that needs cit
 
 | Variable            | Value                                                   |
 | ------------------- | ------------------------------------------------------- |
-| `ANTHROPIC_API_KEY` | Anthropic API key                                       |
+| `OPENAI_API_KEY`    | OpenAI API key                                          |
 | `RESEND_API_KEY`    | Key from Resend step above                              |
 | `SMTP_FROM`         | Sending email address (e.g. `ron@capa.consulting`)      |
 | `SMTP_FROM_NAME`    | Display name (e.g. `"CAPA Procurement Gateway"`)        |
