@@ -27,10 +27,10 @@ COLLECTION = "policy_documents"
 
 
 def _embed_model():
-    from llama_index.embeddings.openai import OpenAIEmbedding
-    return OpenAIEmbedding(
-        model="text-embedding-3-small",
-        api_key=os.getenv("OPENAI_API_KEY"),
+    from llama_index.embeddings.ollama import OllamaEmbedding
+    return OllamaEmbedding(
+        model_name="nomic-embed-text",
+        base_url="http://localhost:11434",
     )
 
 

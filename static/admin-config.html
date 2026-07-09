@@ -62,6 +62,12 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
 #save-status{font-size:0.85rem;color:#666}#save-status.ok{color:#15803d}#save-status.err{color:#b91c1c}
 .spacer{height:18px}
 .hint{font-size:0.82rem;color:#777;margin-bottom:12px}
+.nav-link{margin-left:auto;color:rgba(255,255,255,0.75);font-size:0.8rem;text-decoration:none}
+.nav-link:hover{color:#fff}
+.sidebar-footer{border-top:1px solid #e8ecf3;margin-top:10px;padding:10px 0}
+.sidebar-footer a{display:block;padding:9px 18px;font-size:0.82rem;color:#1f3864;text-decoration:none;
+  border-left:3px solid transparent;opacity:0.7}
+.sidebar-footer a:hover{background:#f5f7fb;opacity:1}
 </style>
 </head>
 <body>
@@ -69,6 +75,7 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
 <header>
   <h1>Procurement Gateway — Config Admin</h1>
   <span class="city-badge" id="hdr-city">Loading…</span>
+  <a class="nav-link" href="/admin/usage">Usage &amp; Analytics →</a>
 </header>
 
 <div class="layout">
@@ -81,6 +88,9 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
     <button class="tab-btn" onclick="switchTab(this,'mail')">Mail</button>
     <button class="tab-btn" onclick="switchTab(this,'departments')">Departments</button>
     <button class="tab-btn" onclick="switchTab(this,'ai')">AI Model</button>
+    <div class="sidebar-footer">
+      <a href="/admin/usage">📊 Usage &amp; Analytics</a>
+    </div>
   </nav>
 
   <main class="content">

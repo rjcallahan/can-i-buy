@@ -1,40 +1,93 @@
 {
   "_comment": "City of Palm Springs — Procurement Helper Configuration",
-  "_last_updated": "2026-04-22",
+  "_last_updated": "2026-07-03",
   "_note": "All dollar amounts are in USD. Edit this file to update thresholds city-wide.",
   "ai": {
     "_comment": "AI model settings. Update model here to change across the entire application.",
-    "model": "claude-sonnet-4-20250514"
+    "model": "gpt-4o-mini"
   },
   "bid_thresholds": {
     "_comment": "Amounts AT OR ABOVE these values require competitive bidding",
-    "supplies": 75000,
+    "construction": 220000,
     "equipment": 75000,
     "it_equipment": 75000,
     "it_software": 75000,
     "maintenance_services": 75000,
-    "professional_services": 75000,
-    "construction": 220000,
     "other": 75000,
+    "professional_services": 75000,
+    "supplies": 75000,
     "travel": 999999999
+  },
+  "city": {
+    "_comment": "City-specific defaults used in document generation",
+    "city_clerk_name": "Anthony Mejia",
+    "city_state_zip": "Palm Springs, CA 92262",
+    "name": "City of Palm Springs",
+    "procurement_email": "procurement@palmspringsca.gov",
+    "procurement_phone": "(760) 323-8264",
+    "state": "CA",
+    "warehouse_address": "Contact Procurement for warehouse address"
+  },
+  "departments": [
+    "Airport",
+    "City Clerk",
+    "City Manager",
+    "Community & Economic Development",
+    "Engineering & Public Works",
+    "Finance",
+    "Fire Department",
+    "Human Resources",
+    "Information Technology",
+    "Library",
+    "Parks & Recreation",
+    "Police Department",
+    "Procurement",
+    "Utilities & Water Resources"
+  ],
+  "mail": {
+    "_comment": "Outbound email (Zoho SMTP). Set smtp_password via SMTP_PASSWORD env var — never store passwords here.",
+    "allowed_addresses": [
+      "rjames.callahan@gmail.com",
+      "kimbaker0206@gmail.com",
+      "rjcallahan@fastmail.com"
+    ],
+    "allowed_domain": "@palmspringsca.gov",
+    "smtp_from": "",
+    "smtp_from_name": "Procurement",
+    "smtp_host": "smtp.zoho.com",
+    "smtp_port": 587,
+    "smtp_user": ""
+  },
+  "pcard": {
+    "_comment": "P-Card rules",
+    "_note": "single_transaction_limit is the default per-transaction cap. Individual card limits may differ.",
+    "_purchase_cap_note": "P-Card is never permitted for total purchase amounts above this threshold. Purchases over $5,000 require a formal agreement or contract regardless of item type.",
+    "prohibited_item_types": [
+      "it_equipment",
+      "it_software",
+      "professional_services",
+      "construction"
+    ],
+    "purchase_cap": 5000,
+    "single_transaction_limit": 2500
   },
   "procurement_methods": {
     "_comment": "Threshold tiers defining the required procurement method per item type",
-    "supplies": [
-      {
-        "max": 15000,
-        "method": "Single Quote / P-Card",
-        "process": "One quote or negotiated purchase. P-Card eligible if under card limit."
-      },
+    "construction": [
       {
         "max": 74999.99,
-        "method": "Informal Process — 3 Quotes",
-        "process": "Obtain minimum three written quotes. No formal bid required."
+        "method": "Force Account or Negotiated Contract",
+        "process": "City forces or negotiated contract allowed."
+      },
+      {
+        "max": 219999.99,
+        "method": "Informal Public Project Bidding",
+        "process": "Informal bidding procedures per California UPCCAA."
       },
       {
         "max": 999999999,
-        "method": "Formal Competitive Bid (IFB/RFP)",
-        "process": "Formal competitive bidding process required. Procurement will manage."
+        "method": "Formal Public Project Bidding (IFB)",
+        "process": "Full formal bidding required per Public Contract Code."
       }
     ],
     "equipment": [
@@ -105,6 +158,23 @@
         "process": "Formal competitive bidding required. Procurement will manage."
       }
     ],
+    "other": [
+      {
+        "max": 15000,
+        "method": "Single Quote",
+        "process": "One quote or negotiated purchase."
+      },
+      {
+        "max": 74999.99,
+        "method": "Informal Process — 3 Quotes",
+        "process": "Three quotes required."
+      },
+      {
+        "max": 999999999,
+        "method": "Formal Competitive Bid",
+        "process": "Formal competitive process required. Procurement will manage."
+      }
+    ],
     "professional_services": [
       {
         "max": 15000,
@@ -122,21 +192,21 @@
         "process": "Formal qualifications-based selection. Procurement will manage."
       }
     ],
-    "construction": [
+    "supplies": [
       {
-        "max": 74999.99,
-        "method": "Force Account or Negotiated Contract",
-        "process": "City forces or negotiated contract allowed."
+        "max": 15000,
+        "method": "Single Quote / P-Card",
+        "process": "One quote or negotiated purchase. P-Card eligible if under card limit."
       },
       {
-        "max": 219999.99,
-        "method": "Informal Public Project Bidding",
-        "process": "Informal bidding procedures per California UPCCAA."
+        "max": 74999.99,
+        "method": "Informal Process — 3 Quotes",
+        "process": "Obtain minimum three written quotes. No formal bid required."
       },
       {
         "max": 999999999,
-        "method": "Formal Public Project Bidding (IFB)",
-        "process": "Full formal bidding required per Public Contract Code."
+        "method": "Formal Competitive Bid (IFB/RFP)",
+        "process": "Formal competitive bidding process required. Procurement will manage."
       }
     ],
     "travel": [
@@ -144,23 +214,6 @@
         "max": 999999999,
         "method": "Travel Policy",
         "process": "City Manager approval required for P-Card travel use. Per diem limits apply."
-      }
-    ],
-    "other": [
-      {
-        "max": 15000,
-        "method": "Single Quote",
-        "process": "One quote or negotiated purchase."
-      },
-      {
-        "max": 74999.99,
-        "method": "Informal Process — 3 Quotes",
-        "process": "Three quotes required."
-      },
-      {
-        "max": 999999999,
-        "method": "Formal Competitive Bid",
-        "process": "Formal competitive process required. Procurement will manage."
       }
     ]
   },
@@ -193,52 +246,5 @@
         "public_max": 999999999
       }
     ]
-  },
-  "pcard": {
-    "_comment": "P-Card rules",
-    "prohibited_item_types": [
-      "it_equipment",
-      "it_software",
-      "professional_services",
-      "construction"
-    ],
-    "single_transaction_limit": 2500,
-    "_note": "single_transaction_limit is the default per-transaction cap. Individual card limits may differ."
-  },
-  "mail": {
-    "_comment": "Outbound email (Zoho SMTP). Set smtp_password via SMTP_PASSWORD env var — never store passwords here.",
-    "smtp_host": "smtp.zoho.com",
-    "smtp_port": 587,
-    "smtp_user": "",
-    "smtp_from": "",
-    "smtp_from_name": "Procurement",
-    "allowed_domain": "@palmspringsca.gov",
-    "allowed_addresses": ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"]
-  },
-  "departments": [
-    "Airport",
-    "City Clerk",
-    "City Manager",
-    "Community & Economic Development",
-    "Engineering & Public Works",
-    "Finance",
-    "Fire Department",
-    "Human Resources",
-    "Information Technology",
-    "Library",
-    "Parks & Recreation",
-    "Police Department",
-    "Procurement",
-    "Utilities & Water Resources"
-  ],
-  "city": {
-    "_comment": "City-specific defaults used in document generation",
-    "name": "City of Palm Springs",
-    "state": "CA",
-    "city_state_zip": "Palm Springs, CA 92262",
-    "city_clerk_name": "Anthony Mejia",
-    "procurement_email": "procurement@palmspringsca.gov",
-    "procurement_phone": "(760) 323-8264",
-    "warehouse_address": "Contact Procurement for warehouse address"
   }
 }

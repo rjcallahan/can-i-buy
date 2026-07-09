@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Usage — Procurement Gateway</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh}
+header{background:#1f3864;color:#fff;padding:13px 28px;display:flex;align-items:center;gap:14px}
+header h1{font-size:0.95rem;font-weight:700;letter-spacing:0.02em}
+.badge{background:rgba(255,255,255,0.18);border-radius:12px;padding:3px 11px;font-size:0.8rem}
+.nav-link{margin-left:auto;color:rgba(255,255,255,0.75);font-size:0.8rem;text-decoration:none}
+.nav-link:hover{color:#fff}
+
+/* Stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;padding:24px 28px 0}
+.stat{background:#fff;border-radius:8px;padding:16px 20px;border:1px solid #dde3ec}
+.stat-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888;margin-bottom:6px}
+.stat-value{font-size:1.8rem;font-weight:700;color:#1f3864;line-height:1}
+.stat-sub{font-size:0.75rem;color:#aaa;margin-top:4px}
+
+/* Tabs */
+.tabs-wrap{padding:20px 28px 0}
+.tabs{display:flex;gap:0;border-bottom:2px solid #e0e8f4}
+.tab-btn{padding:9px 20px;border:none;background:none;cursor:pointer;font-size:0.83rem;color:#666;
+         border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:600;transition:0.1s}
+.tab-btn:hover{color:#1f3864}
+.tab-btn.active{color:#1f3864;border-bottom-color:#1f3864}
+
+/* Content */
+.content{padding:20px 28px 60px}
+.panel{display:none}.panel.active{display:block}
+
+/* Tables */
+.tbl-wrap{background:#fff;border:1px solid #dde3ec;border-radius:8px;overflow:hidden;margin-top:0}
+table{width:100%;border-collapse:collapse;font-size:0.83rem}
+th{background:#eef2f9;color:#1f3864;font-weight:700;font-size:0.72rem;text-transform:uppercase;
+   letter-spacing:0.04em;padding:9px 12px;text-align:left;border-bottom:2px solid #d0d9e8;white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid #f0f2f6;vertical-align:middle;max-width:280px;
+   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfd}
+
+/* Verdict badges */
+.v-badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:0.73rem;font-weight:700;white-space:nowrap}
+.v-approved{background:#edfaf3;color:#1a7a4a}
+.v-flagged {background:#fff4e5;color:#c07000}
+.v-returned{background:#fdf2f2;color:#b91c1c}
+
+/* Strength badges */
+.s-strong  {background:#edfaf3;color:#1a7a4a}
+.s-adequate{background:#fff4e5;color:#c07000}
+.s-weak    {background:#fdf2f2;color:#b91c1c}
+
+/* Month table */
+.month-tbl td.num{text-align:right;font-variant-numeric:tabular-nums;color:#1f3864;font-weight:600}
+.month-tbl td.bar-cell{width:180px}
+.bar-bg{background:#e8eef6;border-radius:4px;height:10px;overflow:hidden}
+.bar-fill{background:#1f3864;height:100%;border-radius:4px;transition:width 0.4s}
+
+/* Email dot */
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.dot-yes{background:#1a7a4a}
+.dot-no {background:#d0d9e8}
+
+/* Empty state */
+.empty{padding:40px;text-align:center;color:#aaa;font-size:0.88rem}
+
+/* Filter row */
+.filter-row{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.filter-row input,.filter-row select{padding:6px 10px;border:1px solid #d0d9e8;border-radius:6px;
+  font-size:0.82rem;background:#fff;color:#333;outline:none}
+.filter-row input{flex:1;min-width:180px}
+.filter-row input:focus,.filter-row select:focus{border-color:#1f3864}
+.row-count{margin-left:auto;font-size:0.78rem;color:#999;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Procurement Gateway — Usage &amp; Analytics</h1>
+  <span class="badge" id="hdr-city">Loading…</span>
+  <a class="nav-link" href="/admin/config">← Config</a>
+</header>
+
+<!-- Stat cards -->
+<div class="stats" id="stat-cards">
+  <div class="stat"><div class="stat-label">Total Analyses</div><div class="stat-value" id="s-total">–</div><div class="stat-sub">lifetime</div></div>
+  <div class="stat"><div class="stat-label">Valid</div><div class="stat-value" id="s-approved" style="color:#1a7a4a">–</div><div class="stat-sub">all time</div></div>
+  <div class="stat"><div class="stat-label">Flagged</div><div class="stat-value" id="s-flagged" style="color:#c07000">–</div><div class="stat-sub">all time</div></div>
+  <div class="stat"><div class="stat-label">Returned</div><div class="stat-value" id="s-returned" style="color:#b91c1c">–</div><div class="stat-sub">all time</div></div>
+  <div class="stat"><div class="stat-label">Reports Emailed</div><div class="stat-value" id="s-emailed">–</div><div class="stat-sub">analyses</div></div>
+  <div class="stat"><div class="stat-label">Sole Source Reviews</div><div class="stat-value" id="s-ss">–</div><div class="stat-sub" id="s-ss-sub">–</div></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'monthly')">Monthly Summary</button>
+    <button class="tab-btn" onclick="switchTab(this,'analyses')">Analysis Log</button>
+    <button class="tab-btn" onclick="switchTab(this,'soleSource')">Sole Source Reviews</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- MONTHLY SUMMARY -->
+  <div class="panel active" id="panel-monthly">
+    <div class="tbl-wrap" style="margin-top:4px">
+      <table class="month-tbl">
+        <thead><tr>
+          <th>Month</th>
+          <th style="text-align:right">Analyses</th>
+          <th style="text-align:right">Sole Source</th>
+          <th style="text-align:right">Emailed</th>
+          <th>Volume</th>
+        </tr></thead>
+        <tbody id="monthly-tbody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ANALYSIS LOG -->
+  <div class="panel" id="panel-analyses">
+    <div class="filter-row">
+      <input type="text" id="analysis-search" placeholder="Search item, department, email…" oninput="filterAnalyses()">
+      <select id="analysis-verdict" onchange="filterAnalyses()">
+        <option value="">All verdicts</option>
+        <option value="APPROVED">VALID</option>
+        <option>FLAGGED</option>
+        <option>RETURNED</option>
+      </select>
+      <select id="analysis-type" onchange="filterAnalyses()">
+        <option value="">All types</option>
+        <option value="supplies">Supplies</option>
+        <option value="equipment">Equipment</option>
+        <option value="it_equipment">IT Equipment</option>
+        <option value="it_software">IT Software</option>
+        <option value="maintenance_services">Maintenance</option>
+        <option value="professional_services">Professional Services</option>
+        <option value="construction">Construction</option>
+        <option value="travel">Travel</option>
+        <option value="other">Other</option>
+      </select>
+      <span class="row-count" id="analysis-count"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Date</th>
+          <th>Department</th>
+          <th>Item</th>
+          <th>Type</th>
+          <th style="text-align:right">Amount</th>
+          <th>Verdict</th>
+          <th>Method</th>
+          <th>Approver</th>
+          <th>Flags</th>
+          <th>Emailed</th>
+        </tr></thead>
+        <tbody id="analyses-tbody"><tr><td colspan="10" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SOLE SOURCE LOG -->
+  <div class="panel" id="panel-soleSource">
+    <div class="filter-row">
+      <input type="text" id="ss-search" placeholder="Search filename, recommendation…" oninput="filterSoleSource()">
+      <select id="ss-strength" onchange="filterSoleSource()">
+        <option value="">All strengths</option>
+        <option>strong</option>
+        <option>adequate</option>
+        <option>weak</option>
+      </select>
+      <span class="row-count" id="ss-count"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Date</th>
+          <th>Filename</th>
+          <th>Strength</th>
+          <th>Ready</th>
+          <th>Recommendation</th>
+          <th>Emailed</th>
+        </tr></thead>
+        <tbody id="ss-tbody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let _analyses   = [];
+let _soleSource = [];
+let _maxAnalyses = 1;
+
+// ── Tabs ──────────────────────────────────────────────────────────
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+// ── Formatters ────────────────────────────────────────────────────
+function fmtDate(s) {
+  if (!s) return '–';
+  // s is "YYYY-MM-DD HH:MM:SS"
+  const d = new Date(s.replace(' ', 'T') + 'Z');
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) +
+         ' ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+}
+
+function fmtAmount(n) {
+  if (n == null) return '–';
+  return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits:0, maximumFractionDigits:0 });
+}
+
+function fmtType(t) {
+  const labels = {
+    supplies:'Supplies', equipment:'Equipment', it_equipment:'IT Equipment',
+    it_software:'IT Software', maintenance_services:'Maintenance',
+    professional_services:'Prof. Services', construction:'Construction',
+    travel:'Travel', other:'Other'
+  };
+  return labels[t] || (t || '–');
+}
+
+function fmtRole(r) {
+  const labels = { director:'Director', acm:'ACM', city_manager:'City Mgr',
+                   city_council:'Council', it_director:'IT Director' };
+  return labels[r] || (r || '–');
+}
+
+function verdictBadge(v) {
+  const cls = { APPROVED:'v-approved', FLAGGED:'v-flagged', RETURNED:'v-returned' }[v] || 'v-returned';
+  const icon = { APPROVED:'✅', FLAGGED:'🚩', RETURNED:'🔄' }[v] || '🔄';
+  const label = { APPROVED:'VALID', FLAGGED:'FLAGGED', RETURNED:'RETURNED' }[v] || v;
+  return `<span class="v-badge ${cls}">${icon} ${label || '–'}</span>`;
+}
+
+function strengthBadge(s) {
+  if (!s) return '–';
+  const cls = { strong:'s-strong', adequate:'s-adequate', weak:'s-weak' }[s.toLowerCase()] || '';
+  return `<span class="v-badge ${cls}">${s.charAt(0).toUpperCase() + s.slice(1)}</span>`;
+}
+
+function emailCell(emailed, to) {
+  if (emailed) {
+    return `<span class="dot dot-yes"></span><span title="${to||''}" style="font-size:0.78rem;color:#555">${(to||'').split('@')[0]}</span>`;
+  }
+  return `<span class="dot dot-no"></span><span style="color:#bbb;font-size:0.78rem">No</span>`;
+}
+
+function flagIcons(row) {
+  const f = [];
+  if (row.sole_source   === 'yes') f.push('<span title="Sole Source">SS</span>');
+  if (row.faa_governed  === 'yes') f.push('<span title="FAA">✈️</span>');
+  if (row.federal_funds === 'yes') f.push('<span title="Federal Funds">🏛</span>');
+  return f.length ? f.join(' ') : '<span style="color:#ccc">—</span>';
+}
+
+// ── Stat cards ────────────────────────────────────────────────────
+function renderTotals(t) {
+  document.getElementById('s-total').textContent    = t.total_analyses   ?? 0;
+  document.getElementById('s-approved').textContent = t.approved         ?? 0;
+  document.getElementById('s-flagged').textContent  = t.flagged          ?? 0;
+  document.getElementById('s-returned').textContent = t.returned         ?? 0;
+  document.getElementById('s-emailed').textContent  = t.total_emailed    ?? 0;
+  document.getElementById('s-ss').textContent       = t.total_ss         ?? 0;
+  const ready = t.ss_ready ?? 0;
+  document.getElementById('s-ss-sub').textContent   = ready + ' ready to submit';
+}
+
+// ── Monthly summary ───────────────────────────────────────────────
+function renderMonthly(rows) {
+  const tbody = document.getElementById('monthly-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">No data yet</td></tr>';
+    return;
+  }
+  const maxA = Math.max(1, ...rows.map(r => r.analyses || 0));
+  tbody.innerHTML = rows.map(r => {
+    const pct = Math.round(((r.analyses || 0) / maxA) * 100);
+    return `<tr>
+      <td><strong>${r.month}</strong></td>
+      <td class="num">${r.analyses ?? 0}</td>
+      <td class="num">${r.sole_source_reviews ?? 0}</td>
+      <td class="num">${r.emails_sent ?? 0}</td>
+      <td class="bar-cell">
+        <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Analysis log ──────────────────────────────────────────────────
+function renderAnalyses(rows) {
+  const tbody = document.getElementById('analyses-tbody');
+  document.getElementById('analysis-count').textContent = rows.length + ' rows';
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">No analyses recorded yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td style="white-space:nowrap;font-size:0.78rem;color:#666">${fmtDate(r.created_at)}</td>
+    <td>${r.department || '–'}</td>
+    <td title="${r.item_name || ''}">${r.item_name || '–'}</td>
+    <td style="white-space:nowrap">${fmtType(r.item_type)}</td>
+    <td style="text-align:right;font-variant-numeric:tabular-nums">${fmtAmount(r.amount)}</td>
+    <td>${verdictBadge(r.verdict)}</td>
+    <td title="${r.procurement_method||''}" style="max-width:160px">${r.procurement_method || '–'}</td>
+    <td style="white-space:nowrap">${fmtRole(r.approval_role)}</td>
+    <td style="white-space:nowrap">${flagIcons(r)}</td>
+    <td>${emailCell(r.report_emailed, r.report_emailed_to)}</td>
+  </tr>`).join('');
+}
+
+function filterAnalyses() {
+  const q      = document.getElementById('analysis-search').value.trim().toLowerCase();
+  const vf     = document.getElementById('analysis-verdict').value;
+  const tf     = document.getElementById('analysis-type').value;
+  const filtered = _analyses.filter(r => {
+    if (vf && r.verdict    !== vf) return false;
+    if (tf && r.item_type  !== tf) return false;
+    if (q) {
+      const hay = [r.department, r.item_name, r.report_emailed_to,
+                   r.procurement_method, r.item_type].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  renderAnalyses(filtered);
+}
+
+// ── Sole source log ───────────────────────────────────────────────
+function renderSoleSource(rows) {
+  const tbody = document.getElementById('ss-tbody');
+  document.getElementById('ss-count').textContent = rows.length + ' rows';
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">No sole source reviews recorded yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td style="white-space:nowrap;font-size:0.78rem;color:#666">${fmtDate(r.created_at)}</td>
+    <td title="${r.filename||''}">${r.filename || '–'}</td>
+    <td>${strengthBadge(r.strength)}</td>
+    <td style="text-align:center">${r.ready_to_submit
+      ? '<span style="color:#1a7a4a;font-weight:700">✓ Yes</span>'
+      : '<span style="color:#b91c1c">✗ No</span>'}</td>
+    <td title="${r.recommendation||''}" style="max-width:320px;font-size:0.8rem;color:#555">${r.recommendation || '–'}</td>
+    <td>${emailCell(r.report_emailed, r.report_emailed_to)}</td>
+  </tr>`).join('');
+}
+
+function filterSoleSource() {
+  const q  = document.getElementById('ss-search').value.trim().toLowerCase();
+  const sf = document.getElementById('ss-strength').value;
+  const filtered = _soleSource.filter(r => {
+    if (sf && (r.strength || '').toLowerCase() !== sf) return false;
+    if (q) {
+      const hay = [r.filename, r.recommendation, r.report_emailed_to].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  renderSoleSource(filtered);
+}
+
+// ── Load ──────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const res = await fetch('/api/admin/usage');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+
+    document.getElementById('hdr-city').textContent =
+      d.totals?.city_name || document.title;
+
+    renderTotals(d.totals   || {});
+    renderMonthly(d.summary || []);
+
+    _analyses   = d.analyses   || [];
+    _soleSource = d.sole_source || [];
+    renderAnalyses(_analyses);
+    renderSoleSource(_soleSource);
+  } catch(e) {
+    document.querySelectorAll('tbody').forEach(t =>
+      t.innerHTML = `<tr><td colspan="10" class="empty" style="color:#b91c1c">Failed to load: ${e.message}</td></tr>`
+    );
+  }
+}
+
+load();
+</script>
+</body>
+</html>

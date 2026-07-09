@@ -23,7 +23,7 @@
     "supplies": [
       {
         "max": 15000,
-        "method": "Single Quote / P-Card",
+        "method": "Single Quote or P-Card",
         "process": "One quote or negotiated purchase. P-Card eligible if under card limit."
       },
       {

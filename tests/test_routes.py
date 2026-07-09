@@ -1,7 +1,7 @@
 """
 Integration tests for Flask routes.
 
-External dependencies (Anthropic API, Resend email, policy_rag) are mocked
+External dependencies (OpenAI-compatible client, Resend email, policy_rag) are mocked
 so these tests run without network access or API keys.
 
 The Flask test client is provided by the `client` fixture in conftest.py.
@@ -10,7 +10,6 @@ import base64
 import json
 import pytest
 from unittest.mock import patch, MagicMock
-from anthropic.types import TextBlock
 
 
 # ── Helpers ───────────────────────────────────────────────────────
@@ -21,15 +20,25 @@ def basic_auth_header(password: str, username: str = "admin") -> dict:
     return {"Authorization": f"Basic {token}"}
 
 
-def make_claude_response(result: dict) -> MagicMock:
+def make_ai_response(result: dict) -> list:
     """
-    Build a mock object that looks like an Anthropic Messages response.
-    The /analyze route calls: message.content[0].text → JSON string.
+    Return a one-chunk streaming mock for client.chat.completions.create(stream=True).
+    The /analyze route iterates chunks and reads chunk.choices[0].delta.content.
     """
-    block = TextBlock(type="text", text=json.dumps(result))
-    msg = MagicMock()
-    msg.content = [block]
-    return msg
+    chunk = MagicMock()
+    chunk.choices = [MagicMock()]
+    chunk.choices[0].delta.content = json.dumps(result)
+    return [chunk]
+
+
+def get_sse_result(response) -> dict:
+    """Parse the final 'result' event from an SSE response."""
+    for line in response.data.decode("utf-8").split("\n\n"):
+        if line.startswith("data: "):
+            event = json.loads(line[6:])
+            if event.get("type") == "result":
+                return event["data"]
+    return None
 
 
 # ── Representative payloads ────────────────────────────────────────
@@ -48,7 +57,7 @@ VALID_ANALYZE_PAYLOAD = {
     "faa_governed":    "no",
 }
 
-MOCK_CLAUDE_RESULT = {
+MOCK_AI_RESULT = {
     "verdict":           "APPROVED",
     "procurement_method": "Single Quote / P-Card",
     "valid_methods": [
@@ -81,8 +90,8 @@ class TestHealthAndStaticRoutes:
         assert r.status_code == 200
         assert b"html" in r.data.lower()
 
-    def test_can_i_buy_this_route_same_as_root(self, client):
-        r = client.get("/can-i-buy-this")
+    def test_clear2buy_route_same_as_root(self, client):
+        r = client.get("/clear2buy")
         assert r.status_code == 200
         assert b"html" in r.data.lower()
 
@@ -155,49 +164,58 @@ class TestAdminAuth:
 class TestAnalyzeEndpoint:
 
     def test_analyze_returns_verdict(self, client):
-        mock_msg = make_claude_response(MOCK_CLAUDE_RESULT)
-        with patch("app.client.messages.create", return_value=mock_msg), \
+        with patch("app.client.chat.completions.create", return_value=make_ai_response(MOCK_AI_RESULT)), \
              patch("intake.build_prompt", return_value="test prompt"):
             r = client.post("/analyze", json=VALID_ANALYZE_PAYLOAD)
         assert r.status_code == 200
-        data = r.get_json()
-        assert "verdict" in data
+        data = get_sse_result(r)
+        assert data is not None
         assert data["verdict"] == "APPROVED"
 
     def test_analyze_always_includes_approval_chain(self, client):
-        """The route should always append approval_chain, overwriting Claude's."""
-        mock_msg = make_claude_response({**MOCK_CLAUDE_RESULT, "approval_chain": []})
-        with patch("app.client.messages.create", return_value=mock_msg), \
+        """The route should always append approval_chain, overwriting the model's."""
+        with patch("app.client.chat.completions.create", return_value=make_ai_response({**MOCK_AI_RESULT, "approval_chain": []})), \
              patch("intake.build_prompt", return_value="test prompt"):
             r = client.post("/analyze", json={**VALID_ANALYZE_PAYLOAD, "amount": 10_000})
-        data = r.get_json()
+        data = get_sse_result(r)
         assert "approval_chain" in data
         assert len(data["approval_chain"]) >= 1
         assert any(s["approves"] for s in data["approval_chain"])
 
     def test_analyze_sanitizes_pcard_from_methods(self, client):
         """P-Card references should be stripped from valid_methods by the time it reaches the client."""
-        result_with_pcard = {**MOCK_CLAUDE_RESULT, "valid_methods": [
+        result_with_pcard = {**MOCK_AI_RESULT, "valid_methods": [
             {"method": "Single Quote / P-Card", "description": "One quote.", "documents_needed": []},
         ]}
-        mock_msg = make_claude_response(result_with_pcard)
-        with patch("app.client.messages.create", return_value=mock_msg), \
+        with patch("app.client.chat.completions.create", return_value=make_ai_response(result_with_pcard)), \
              patch("intake.build_prompt", return_value="test prompt"):
             r = client.post("/analyze", json=VALID_ANALYZE_PAYLOAD)
-        data = r.get_json()
+        data = get_sse_result(r)
         for m in data.get("valid_methods", []):
             assert "p-card" not in m["method"].lower(), f"P-Card not stripped: {m['method']}"
 
     def test_analyze_handles_markdown_fenced_json(self, client):
-        """Claude sometimes wraps output in ```json fences — app must handle this gracefully."""
-        wrapped_text = "```json\n" + json.dumps(MOCK_CLAUDE_RESULT) + "\n```"
-        block = TextBlock(type="text", text=wrapped_text)
-        msg = MagicMock()
-        msg.content = [block]
-        with patch("app.client.messages.create", return_value=msg), \
+        """Model sometimes wraps output in ```json fences — app must handle this gracefully."""
+        wrapped = "```json\n" + json.dumps(MOCK_AI_RESULT) + "\n```"
+        chunk = MagicMock()
+        chunk.choices = [MagicMock()]
+        chunk.choices[0].delta.content = wrapped
+        with patch("app.client.chat.completions.create", return_value=[chunk]), \
              patch("intake.build_prompt", return_value="test prompt"):
             r = client.post("/analyze", json=VALID_ANALYZE_PAYLOAD)
-        assert r.status_code == 200
+        assert get_sse_result(r) is not None
+
+    def test_analyze_handles_think_block(self, client):
+        """DeepSeek-style <think>...</think> blocks must be stripped before JSON parsing."""
+        wrapped = "<think>reasoning here</think>\n" + json.dumps(MOCK_AI_RESULT)
+        chunk = MagicMock()
+        chunk.choices = [MagicMock()]
+        chunk.choices[0].delta.content = wrapped
+        with patch("app.client.chat.completions.create", return_value=[chunk]), \
+             patch("intake.build_prompt", return_value="test prompt"):
+            r = client.post("/analyze", json=VALID_ANALYZE_PAYLOAD)
+        data = get_sse_result(r)
+        assert data["verdict"] == "APPROVED"
 
     def test_analyze_missing_body_returns_400(self, client):
         r = client.post("/analyze", data="", content_type="application/json")
@@ -208,24 +226,22 @@ class TestAnalyzeEndpoint:
         assert r.status_code == 400
 
     def test_analyze_approval_chain_correct_for_small_purchase(self, client):
-        mock_msg = make_claude_response(MOCK_CLAUDE_RESULT)
         payload = {**VALID_ANALYZE_PAYLOAD, "amount": 5_000, "item_type": "supplies"}
-        with patch("app.client.messages.create", return_value=mock_msg), \
+        with patch("app.client.chat.completions.create", return_value=make_ai_response(MOCK_AI_RESULT)), \
              patch("intake.build_prompt", return_value="test prompt"):
             r = client.post("/analyze", json=payload)
-        chain = r.get_json()["approval_chain"]
+        chain = get_sse_result(r)["approval_chain"]
         # $5,000 supplies → director approves solo
         assert len(chain) == 1
         assert chain[0]["role"] == "director"
         assert chain[0]["approves"] is True
 
     def test_analyze_approval_chain_correct_for_large_purchase(self, client):
-        mock_msg = make_claude_response(MOCK_CLAUDE_RESULT)
         payload = {**VALID_ANALYZE_PAYLOAD, "amount": 100_000, "item_type": "supplies"}
-        with patch("app.client.messages.create", return_value=mock_msg), \
+        with patch("app.client.chat.completions.create", return_value=make_ai_response(MOCK_AI_RESULT)), \
              patch("intake.build_prompt", return_value="test prompt"):
             r = client.post("/analyze", json=payload)
-        chain = r.get_json()["approval_chain"]
+        chain = get_sse_result(r)["approval_chain"]
         signer = next(s for s in chain if s["approves"])
         assert signer["role"] == "city_manager"
 
@@ -328,15 +344,8 @@ class TestIngestEndpoint:
         r = client.post("/api/admin/ingest")
         assert r.status_code == 401
 
-    def test_no_openai_key_returns_500(self, client, monkeypatch):
-        monkeypatch.setenv("INGEST_SECRET", "real-secret")
-        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        r = client.post("/api/admin/ingest", headers={"X-Ingest-Secret": "real-secret"})
-        assert r.status_code == 500
-
     def test_correct_secret_triggers_ingest(self, client, monkeypatch):
         monkeypatch.setenv("INGEST_SECRET", "real-secret")
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
         with patch("policy_rag.ingest", return_value=12):
             r = client.post("/api/admin/ingest", headers={"X-Ingest-Secret": "real-secret"})
         assert r.status_code == 200

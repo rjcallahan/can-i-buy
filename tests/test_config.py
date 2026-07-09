@@ -255,8 +255,8 @@ class TestAIModel:
         assert isinstance(model, str)
         assert len(model) > 0
 
-    def test_ai_model_contains_claude(self):
-        assert "claude" in cfg.ai_model().lower()
+    def test_ai_model_is_non_empty_string(self):
+        assert len(cfg.ai_model()) > 0
 
     def test_ai_model_default_used_on_missing_key(self):
         # If key not present, the default is returned rather than raising

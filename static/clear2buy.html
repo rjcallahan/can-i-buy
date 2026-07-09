@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CAPA — Can I Buy This?</title>
+    <title>CAPA — Clear2Buy</title>
     <link rel="stylesheet" href="/static/intake.css" />
     <style>
       .demo-badge {
@@ -48,7 +48,7 @@
       <div class="card" id="form-card">
         <div class="card-header">
           <span class="icon">🛒</span>
-          Can I Buy This?
+          Clear2Buy
           <span class="demo-badge">Demo</span>
         </div>
         <div class="card-body">
@@ -228,28 +228,83 @@
                 </div>
 
                 <!-- Sole source letter validator -->
-                <div class="field full" style="margin-top:4px">
-                  <label>Validate your sole source justification letter
-                    <span style="font-weight:400;color:#777">(optional — PDF)</span>
+                <div class="field full" style="margin-top: 4px">
+                  <label
+                    >Validate your sole source justification letter
+                    <span style="font-weight: 400; color: #777"
+                      >(optional — PDF)</span
+                    >
                   </label>
-                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
-                    <input type="file" id="ss-letter-file" accept=".pdf"
-                      style="flex:1;min-width:200px;font-size:13px;padding:6px 0"
-                      onchange="onSsFileChange()" />
-                    <button type="button" id="ss-validate-btn" onclick="validateSsLetter()"
+                  <div
+                    style="
+                      display: flex;
+                      gap: 8px;
+                      align-items: center;
+                      flex-wrap: wrap;
+                      margin-top: 4px;
+                    "
+                  >
+                    <input
+                      type="file"
+                      id="ss-letter-file"
+                      accept=".pdf"
+                      style="
+                        flex: 1;
+                        min-width: 200px;
+                        font-size: 13px;
+                        padding: 6px 0;
+                      "
+                      onchange="onSsFileChange()"
+                    />
+                    <button
+                      type="button"
+                      id="ss-validate-btn"
+                      onclick="validateSsLetter()"
                       disabled
-                      style="padding:8px 18px;background:#2e5496;color:#fff;border:none;border-radius:6px;
-                             font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;opacity:0.5">
+                      style="
+                        padding: 8px 18px;
+                        background: #2e5496;
+                        color: #fff;
+                        border: none;
+                        border-radius: 6px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        white-space: nowrap;
+                        opacity: 0.5;
+                      "
+                    >
                       Validate Letter
                     </button>
                   </div>
-                  <div id="ss-validate-loading" style="display:none;font-size:13px;color:#555;margin-top:8px">
-                    <span style="display:inline-block;width:14px;height:14px;border:2px solid #2e5496;
-                                 border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;
-                                 vertical-align:middle;margin-right:6px"></span>
+                  <div
+                    id="ss-validate-loading"
+                    style="
+                      display: none;
+                      font-size: 13px;
+                      color: #555;
+                      margin-top: 8px;
+                    "
+                  >
+                    <span
+                      style="
+                        display: inline-block;
+                        width: 14px;
+                        height: 14px;
+                        border: 2px solid #2e5496;
+                        border-top-color: transparent;
+                        border-radius: 50%;
+                        animation: spin 0.7s linear infinite;
+                        vertical-align: middle;
+                        margin-right: 6px;
+                      "
+                    ></span>
                     Analyzing letter…
                   </div>
-                  <div id="ss-validate-result" style="display:none;margin-top:12px"></div>
+                  <div
+                    id="ss-validate-result"
+                    style="display: none; margin-top: 12px"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -286,7 +341,10 @@
         style="display: none; text-align: center; padding: 40px"
       >
         <div class="spinner"></div>
-        <p style="color: #1f3864; margin-top: 16px; font-weight: 600">
+        <p
+          id="loading-msg"
+          style="color: #1f3864; margin-top: 16px; font-weight: 600"
+        >
           Checking procurement policy…
         </p>
       </div>
@@ -319,16 +377,25 @@
     <script>
       // ── Load departments ─────────────────────────────────────
       var FALLBACK_DEPARTMENTS = [
-        "Airport","City Clerk","City Manager",
-        "Community & Economic Development","Engineering & Public Works",
-        "Finance","Fire Department","Human Resources",
-        "Information Technology","Library","Parks & Recreation",
-        "Police Department","Procurement","Utilities & Water Resources"
+        "Airport",
+        "City Clerk",
+        "City Manager",
+        "Community & Economic Development",
+        "Engineering & Public Works",
+        "Finance",
+        "Fire Department",
+        "Human Resources",
+        "Information Technology",
+        "Library",
+        "Parks & Recreation",
+        "Police Department",
+        "Procurement",
+        "Utilities & Water Resources",
       ];
 
       function populateDepartments(list) {
         var sel = document.getElementById("department");
-        list.forEach(function(d) {
+        list.forEach(function (d) {
           var opt = document.createElement("option");
           opt.value = d;
           opt.textContent = d;
@@ -340,8 +407,10 @@
         try {
           const res = await fetch("/api/config/departments");
           const data = await res.json();
-          var depts = (data.departments && data.departments.length)
-            ? data.departments : FALLBACK_DEPARTMENTS;
+          var depts =
+            data.departments && data.departments.length
+              ? data.departments
+              : FALLBACK_DEPARTMENTS;
           populateDepartments(depts);
         } catch (e) {
           console.warn("Departments API unavailable, using fallback:", e);
@@ -457,8 +526,34 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
           });
-          const result = await response.json();
-          if (result.error) throw new Error(result.error);
+          if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || "Request failed");
+          }
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          const loadingMsg = document.getElementById("loading-msg");
+          let buffer = "";
+          let result = null;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const parts = buffer.split("\n\n");
+            buffer = parts.pop();
+            for (const part of parts) {
+              if (!part.startsWith("data: ")) continue;
+              const event = JSON.parse(part.slice(6));
+              if (event.type === "stage" && loadingMsg) {
+                loadingMsg.textContent = event.message;
+              } else if (event.type === "result") {
+                result = event.data;
+              } else if (event.type === "error") {
+                throw new Error(event.message);
+              }
+            }
+          }
+          if (!result) throw new Error("No result received");
           renderResult(data, result);
         } catch (err) {
           renderError(err.message);
@@ -849,15 +944,22 @@
         try {
           var res = await fetch("/api/analyze-sole-source", {
             method: "POST",
-            body: formData
+            body: formData,
           });
           var r = await res.json();
-          if (!res.ok || r.error) throw new Error(r.error || "Analysis failed.");
-          window._lastSsResult = { result: r, filename: fileInput.files[0].name };
+          if (!res.ok || r.error)
+            throw new Error(r.error || "Analysis failed.");
+          window._lastSsResult = {
+            result: r,
+            filename: fileInput.files[0].name,
+          };
           resultDiv.innerHTML = buildSsResultHTML(r);
           resultDiv.style.display = "block";
         } catch (e) {
-          resultDiv.innerHTML = '<div style="color:#c0392b;font-size:13px">⚠️ ' + e.message + "</div>";
+          resultDiv.innerHTML =
+            '<div style="color:#c0392b;font-size:13px">⚠️ ' +
+            e.message +
+            "</div>";
           resultDiv.style.display = "block";
         } finally {
           loading.style.display = "none";
@@ -867,37 +969,67 @@
       }
 
       function buildSsResultHTML(r) {
-        var strengthColors = { strong: "#1a7a4a", adequate: "#e97132", weak: "#c0392b" };
-        var strengthBg = { strong: "#edfaf3", adequate: "#fff8f0", weak: "#fdf2f2" };
+        var strengthColors = {
+          strong: "#1a7a4a",
+          adequate: "#e97132",
+          weak: "#c0392b",
+        };
+        var strengthBg = {
+          strong: "#edfaf3",
+          adequate: "#fff8f0",
+          weak: "#fdf2f2",
+        };
         var strengthIcons = { strong: "✅", adequate: "⚠️", weak: "❌" };
         var s = (r.strength || "weak").toLowerCase();
         var color = strengthColors[s] || "#555";
         var bg = strengthBg[s] || "#f9f9f9";
         var icon = strengthIcons[s] || "⚠️";
 
-        var statusColors = { pass: "#1a7a4a", partial: "#c07000", fail: "#c0392b", not_applicable: "#888" };
-        var statusLabels = { pass: "✓ Supported", partial: "~ Partial", fail: "✗ Missing", not_applicable: "— N/A" };
+        var statusColors = {
+          pass: "#1a7a4a",
+          partial: "#c07000",
+          fail: "#c0392b",
+          not_applicable: "#888",
+        };
+        var statusLabels = {
+          pass: "✓ Supported",
+          partial: "~ Partial",
+          fail: "✗ Missing",
+          not_applicable: "— N/A",
+        };
 
         var checksHTML = "";
-        (r.checks || []).forEach(function(c) {
+        (r.checks || []).forEach(function (c) {
           var sc = statusColors[c.status] || "#555";
           var sl = statusLabels[c.status] || c.status;
           checksHTML +=
             '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #eee;font-size:12px">' +
-            '<div style="flex:0 0 90px;color:' + sc + ';font-weight:600">' + sl + '</div>' +
-            '<div><div style="font-weight:600;color:#333">' + c.criterion + '</div>' +
-            '<div style="color:#555;margin-top:2px">' + (c.note || "") + '</div></div>' +
-            '</div>';
+            '<div style="flex:0 0 90px;color:' +
+            sc +
+            ';font-weight:600">' +
+            sl +
+            "</div>" +
+            '<div><div style="font-weight:600;color:#333">' +
+            c.criterion +
+            "</div>" +
+            '<div style="color:#555;margin-top:2px">' +
+            (c.note || "") +
+            "</div></div>" +
+            "</div>";
         });
 
         var flagsHTML = "";
         if (r.flags && r.flags.length) {
-          flagsHTML = '<div style="margin-top:10px">' +
+          flagsHTML =
+            '<div style="margin-top:10px">' +
             '<div style="font-size:12px;font-weight:700;color:#c0392b;margin-bottom:4px">Issues to address:</div>';
-          r.flags.forEach(function(f) {
-            flagsHTML += '<div style="font-size:12px;color:#c0392b;padding:2px 0">• ' + f + '</div>';
+          r.flags.forEach(function (f) {
+            flagsHTML +=
+              '<div style="font-size:12px;color:#c0392b;padding:2px 0">• ' +
+              f +
+              "</div>";
           });
-          flagsHTML += '</div>';
+          flagsHTML += "</div>";
         }
 
         var submitBadge = r.ready_to_submit
@@ -906,13 +1038,25 @@
           : '<span style="background:#fdf2f2;color:#c0392b;border:1px solid #f0b8b8;border-radius:10px;' +
             'font-size:11px;font-weight:700;padding:2px 9px">Needs strengthening</span>';
 
-        return '<div style="border:1px solid #d0dae8;border-radius:6px;overflow:hidden">' +
-          '<div style="background:' + bg + ';padding:10px 14px;display:flex;align-items:center;justify-content:space-between">' +
-          '<div style="font-weight:700;color:' + color + ';font-size:13px">' + icon + ' Letter strength: ' + s.charAt(0).toUpperCase() + s.slice(1) + '</div>' +
+        return (
+          '<div style="border:1px solid #d0dae8;border-radius:6px;overflow:hidden">' +
+          '<div style="background:' +
+          bg +
+          ';padding:10px 14px;display:flex;align-items:center;justify-content:space-between">' +
+          '<div style="font-weight:700;color:' +
+          color +
+          ';font-size:13px">' +
+          icon +
+          " Letter strength: " +
+          s.charAt(0).toUpperCase() +
+          s.slice(1) +
+          "</div>" +
           submitBadge +
-          '</div>' +
+          "</div>" +
           '<div style="padding:12px 14px">' +
-          '<div style="font-size:13px;color:#333;margin-bottom:10px">' + (r.recommendation || "") + '</div>' +
+          '<div style="font-size:13px;color:#333;margin-bottom:10px">' +
+          (r.recommendation || "") +
+          "</div>" +
           checksHTML +
           flagsHTML +
           '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #e8eef6">' +
@@ -923,11 +1067,12 @@
           '<button type="button" onclick="sendSsReport()"' +
           ' style="padding:7px 16px;background:#2e5496;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap"' +
           ' id="ss-send-btn">Send</button>' +
-          '</div>' +
+          "</div>" +
           '<div id="ss-email-err" style="display:none;font-size:12px;color:#c0392b;margin-top:4px"></div>' +
           '<div id="ss-send-status" style="display:none;font-size:12px;margin-top:6px"></div>' +
-          '</div>' +
-          '</div></div>';
+          "</div>" +
+          "</div></div>"
+        );
       }
 
       // ── Send sole source report ───────────────────────────────
@@ -939,50 +1084,76 @@
       }
 
       async function sendSsReport() {
-        var emailEl  = document.getElementById("ss-email");
-        var btn      = document.getElementById("ss-send-btn");
-        var status   = document.getElementById("ss-send-status");
-        var errEl    = document.getElementById("ss-email-err");
-        var email    = (emailEl ? emailEl.value : "").trim().toLowerCase();
-        var emailRe  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        var allowed  = ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"];
+        var emailEl = document.getElementById("ss-email");
+        var btn = document.getElementById("ss-send-btn");
+        var status = document.getElementById("ss-send-status");
+        var errEl = document.getElementById("ss-email-err");
+        var email = (emailEl ? emailEl.value : "").trim().toLowerCase();
+        var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        var allowed = ["rjames.callahan@gmail.com", "kimbaker0206@gmail.com"];
 
         if (!emailRe.test(email)) {
-          if (errEl) { errEl.textContent = "Enter a valid email."; errEl.style.display = "block"; }
+          if (errEl) {
+            errEl.textContent = "Enter a valid email.";
+            errEl.style.display = "block";
+          }
           if (emailEl) emailEl.style.borderColor = "#c0392b";
           return;
         }
         if (!email.endsWith("@palmspringsca.gov") && !allowed.includes(email)) {
-          if (errEl) { errEl.textContent = "Must be a @palmspringsca.gov address."; errEl.style.display = "block"; }
+          if (errEl) {
+            errEl.textContent = "Must be a @palmspringsca.gov address.";
+            errEl.style.display = "block";
+          }
           if (emailEl) emailEl.style.borderColor = "#c0392b";
           return;
         }
 
-        if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Sending…";
+        }
         if (status) status.style.display = "none";
 
         try {
           var payload = {
             email: email,
-            result:   (window._lastSsResult || {}).result   || {},
-            filename: (window._lastSsResult || {}).filename || "sole source letter"
+            result: (window._lastSsResult || {}).result || {},
+            filename:
+              (window._lastSsResult || {}).filename || "sole source letter",
           };
-            var controller = new AbortController();
+          var controller = new AbortController();
           var timeout = setTimeout(() => controller.abort(), 15000);
-          var res  = await fetch("/api/send-ss-report", {
+          var res = await fetch("/api/send-ss-report", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-            signal: controller.signal
+            signal: controller.signal,
           });
           clearTimeout(timeout);
           var json = await res.json();
-          if (!res.ok || json.error) throw new Error(json.error || "Send failed.");
-          if (status) { status.textContent = "✅ Sent!"; status.style.color = "#1a7a4a"; status.style.display = "block"; }
+          if (!res.ok || json.error)
+            throw new Error(json.error || "Send failed.");
+          if (status) {
+            status.textContent = "✅ Sent!";
+            status.style.color = "#1a7a4a";
+            status.style.display = "block";
+          }
           if (btn) btn.textContent = "Sent";
-        } catch(e) {
-          if (status) { status.textContent = "⚠️ " + (e.name === "AbortError" ? "Request timed out — SMTP may be unreachable on Railway." : e.message); status.style.color = "#c0392b"; status.style.display = "block"; }
-          if (btn) { btn.disabled = false; btn.textContent = "Send"; }
+        } catch (e) {
+          if (status) {
+            status.textContent =
+              "⚠️ " +
+              (e.name === "AbortError"
+                ? "Request timed out — SMTP may be unreachable on Railway."
+                : e.message);
+            status.style.color = "#c0392b";
+            status.style.display = "block";
+          }
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Send";
+          }
         }
       }
 
@@ -1006,12 +1177,21 @@
         var ssFile = document.getElementById("ss-letter-file");
         if (ssFile) ssFile.value = "";
         var ssBtn = document.getElementById("ss-validate-btn");
-        if (ssBtn) { ssBtn.disabled = true; ssBtn.style.opacity = "0.5"; }
+        if (ssBtn) {
+          ssBtn.disabled = true;
+          ssBtn.style.opacity = "0.5";
+        }
         var ssResult = document.getElementById("ss-validate-result");
         if (ssResult) ssResult.style.display = "none";
 
         // Clear validation errors
-        ["item_name","item_type","amount","description","department"].forEach(function(f) {
+        [
+          "item_name",
+          "item_type",
+          "amount",
+          "description",
+          "department",
+        ].forEach(function (f) {
           setErr(f, false);
         });
 

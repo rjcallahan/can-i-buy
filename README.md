@@ -1,12 +1,12 @@
 # New City Deployment Checklist
 
-### CAPA Procurement Gateway — Can-I-Buy
+### CAPA Procurement Gateway — Clear2Buy
 
 ---
 
 ## 1. Repository
 
-- [ ] Fork or copy the `Can-I-Buy` repo into a new repo named for the city (e.g. `Cathedral-City`)
+- [ ] Fork or copy the `Clear2Buy` repo into a new repo named for the city (e.g. `Cathedral-City`)
 - [ ] Clone it locally
 - [ ] Create a new branch `main`
 

@@ -3,21 +3,20 @@
 import os
 import json
 import re
-import base64
-
 import datetime
-from flask import Flask, request, jsonify, send_from_directory, Response
+from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context
 from dotenv import load_dotenv
-import anthropic
-from anthropic.types import TextBlock
+from openai import OpenAI
 
 import intake
+import usage_db
 from procurement_config import cfg
 
 load_dotenv()
+usage_db.init()
 
 app = Flask(__name__, static_folder="static")
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ── Email helper ─────────────────────────────────────────────
 
@@ -103,20 +102,35 @@ _CURRENT_CAT   = re.compile(
     r'[Uu]nder the current[^.]*categorization[^.]*\.?\s*', re.IGNORECASE
 )
 
+def _parse_ai_json(content: str) -> dict:
+    """Strip DeepSeek <think> blocks and markdown fences, then parse JSON."""
+    content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        cleaned = content.replace("```json", "").replace("```", "").strip()
+        return json.loads(cleaned)
+
+
 def _sanitize_result(result: dict) -> None:
     """Remove P-Card from valid_methods names and scrub stale categorization text."""
     for m in result.get("valid_methods", []):
         m["method"] = _PCARD_PATTERN.sub("", m.get("method", "")).strip(" /,")
 
-    result["valid_methods"] = [
-        m for m in result.get("valid_methods", [])
-        if m.get("method", "").strip()
-        and "p-card" not in m.get("method", "").lower()
-    ]
+    seen_methods: set[str] = set()
+    deduped = []
+    for m in result.get("valid_methods", []):
+        name = m.get("method", "").strip()
+        key = name.lower()
+        if name and "p-card" not in key and key not in seen_methods:
+            seen_methods.add(key)
+            deduped.append(m)
+    result["valid_methods"] = deduped
 
     for key in ("summary", "flags"):
         val = result.get(key)
         if isinstance(val, str):
+            val = _PCARD_PATTERN.sub("", val).strip(" /,")
             result[key] = _CURRENT_CAT.sub("", val).strip()
         elif isinstance(val, list):
             result[key] = [_CURRENT_CAT.sub("", f).strip() for f in val]
@@ -126,12 +140,12 @@ def _sanitize_result(result: dict) -> None:
 
 @app.route("/")
 def index():
-    return send_from_directory("static", "can-i-buy-this.html")
+    return send_from_directory("static", "clear2buy.html")
 
 
-@app.route("/can-i-buy-this")
-def can_i_buy_this():
-    return send_from_directory("static", "can-i-buy-this.html")
+@app.route("/clear2buy")
+def clear2buy():
+    return send_from_directory("static", "clear2buy.html")
 
 
 @app.route("/health")
@@ -141,49 +155,113 @@ def health():
 
 # ── AI analysis ───────────────────────────────────────────────
 
+def _run_analysis(data: dict) -> dict:
+    """Core analysis logic — shared by SSE and test paths."""
+    prompt = intake.build_prompt(data)
+    model = cfg.ai_model()
+    full_content = ""
+    stream = client.chat.completions.create(
+        model=model,
+        max_tokens=800,
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        stream=True,
+    )
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content or ""
+        if delta:
+            full_content += delta
+    result = _parse_ai_json(full_content)
+    amount    = float(data.get("amount") or 0)
+    item_type = data.get("item_type", "other")
+    result["approval_chain"] = compute_approval_chain(amount, item_type)
+    _sanitize_result(result)
+    pcard_cap = float((cfg._get("pcard") or {}).get("purchase_cap", float("inf")))
+    if amount > pcard_cap:
+        result["pcard_eligible"] = False
+        result["pcard_note"] = (
+            f"P-Card is not permitted for purchases over ${pcard_cap:,.0f}. "
+            "A formal requisition is required."
+        )
+    result["log_id"] = usage_db.log_analysis(data, result)
+    return result
+
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    try:
-        data = request.get_json(silent=True)
-        if not data:
-            return jsonify({"error": "No data received"}), 400
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "No data received"}), 400
 
-        prompt = intake.build_prompt(data)
-
-        model = cfg.ai_model()
-        message = client.messages.create(
-            model=model,
-            max_tokens=1500,
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        block = message.content[0]
-        if not isinstance(block, TextBlock):
-            raise ValueError(f"Unexpected response block type: {type(block)}")
-        content = block.text
+    # Skip SSE overhead in tests — return a single SSE-formatted result event
+    # so test helpers (get_sse_result) still work without Werkzeug streaming delay.
+    if app.testing:
         try:
-            result = json.loads(content)
-        except json.JSONDecodeError:
-            cleaned = content.replace("```json", "").replace("```", "").strip()
-            result = json.loads(cleaned)
+            result = _run_analysis(data)
+            body = f"data: {json.dumps({'type': 'result', 'data': result})}\n\n"
+            return Response(body, mimetype="text/event-stream")
+        except json.JSONDecodeError as e:
+            return jsonify({"error": f"Failed to parse AI response: {str(e)}"}), 500
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
-        amount    = float(data.get("amount") or 0)
-        item_type = data.get("item_type", "other")
-        result["approval_chain"] = compute_approval_chain(amount, item_type)
-        _sanitize_result(result)
+    def _sse(event: dict) -> str:
+        return f"data: {json.dumps(event)}\n\n"
 
-        return jsonify(result)
+    def generate():
+        try:
+            yield _sse({"type": "stage", "message": "Reviewing policy documents\u2026"})
+            prompt = intake.build_prompt(data)
+            yield _sse({"type": "stage", "message": "Analyzing your request\u2026"})
+            model = cfg.ai_model()
+            full_content = ""
+            first_token = True
+            stream = client.chat.completions.create(
+                model=model,
+                max_tokens=800,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+                stream=True,
+            )
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content or ""
+                if delta:
+                    full_content += delta
+                    if first_token:
+                        yield _sse({"type": "stage", "message": "Generating recommendation\u2026"})
+                        first_token = False
+                    else:
+                        yield _sse({"type": "token"})
+            result = _parse_ai_json(full_content)
+            amount    = float(data.get("amount") or 0)
+            item_type = data.get("item_type", "other")
+            result["approval_chain"] = compute_approval_chain(amount, item_type)
+            _sanitize_result(result)
+            pcard_cap = float((cfg._get("pcard") or {}).get("purchase_cap", float("inf")))
+            if amount > pcard_cap:
+                result["pcard_eligible"] = False
+                result["pcard_note"] = (
+                    f"P-Card is not permitted for purchases over ${pcard_cap:,.0f}. "
+                    "A formal requisition is required."
+                )
+            result["log_id"] = usage_db.log_analysis(data, result)
+            yield _sse({"type": "result", "data": result})
+        except json.JSONDecodeError as e:
+            yield _sse({"type": "error", "message": f"Failed to parse AI response: {str(e)}"})
+        except Exception as e:
+            yield _sse({"type": "error", "message": str(e)})
 
-    except json.JSONDecodeError as e:
-        return jsonify({"error": f"Failed to parse AI response: {str(e)}"}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 # ── Send analysis report via email ────────────────────────────
 
 @app.route("/api/send-report", methods=["POST"])
-def send_can_i_buy_report():
+def send_clear2buy_report():
     body  = request.get_json(force=True) or {}
     email = (body.get("email") or "").strip().lower()
 
@@ -203,7 +281,7 @@ def send_can_i_buy_report():
     verdict     = result.get("verdict", "")
     summary     = result.get("summary", "")
 
-    verdict_label = {"APPROVED": "✅ Approved", "FLAGGED": "🚩 Flagged",
+    verdict_label = {"APPROVED": "✅ Valid", "FLAGGED": "🚩 Flagged",
                      "RETURNED": "🔄 Returned"}.get(verdict, verdict)
 
     methods = result.get("valid_methods") or (
@@ -237,7 +315,7 @@ def send_can_i_buy_report():
 
     html_body = f"""
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-      <h2 style="color:#1f3864">Can I Buy This? — Policy Report</h2>
+      <h2 style="color:#1f3864">Clear2Buy — Policy Report</h2>
       <p><strong>Item:</strong> {item_name}</p>
       <p><strong>Estimated Cost:</strong> ${amount:,.2f}</p>
       <p><strong>Description:</strong> {description}</p>
@@ -252,7 +330,7 @@ def send_can_i_buy_report():
     </div>"""
 
     text_body = (
-        f"Can I Buy This? — Policy Report\n\n"
+        f"Clear2Buy — Policy Report\n\n"
         f"Item: {item_name}\nEstimated Cost: ${amount:,.2f}\nDescription: {description}\n\n"
         f"Verdict: {verdict_label}\n{summary}\n\n"
         + ("Procurement Path(s):\n" + "\n".join(f"- {m['method']}" for m in methods) if methods else "")
@@ -261,6 +339,7 @@ def send_can_i_buy_report():
     success = send_email(email, f"Procurement Policy Check: {item_name}", text_body, html_body)
     if success is False:
         return jsonify({"error": "Email send failed. Check SMTP configuration."}), 500
+    usage_db.mark_analysis_emailed(result.get("log_id"), email)
     return jsonify({"ok": True})
 
 
@@ -278,7 +357,11 @@ def analyze_sole_source():
         if not f.filename.lower().endswith(".pdf"):
             return jsonify({"error": "PDF files only"}), 400
 
-        pdf_b64 = base64.standard_b64encode(f.read()).decode("utf-8")
+        import fitz  # PyMuPDF
+        pdf_bytes = f.read()
+        pdf_doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        pdf_text = "\n".join(page.get_text() for page in pdf_doc)
+        pdf_doc.close()
 
         prompt = """You are a California public procurement compliance officer reviewing a sole source justification letter.
 
@@ -318,35 +401,20 @@ Scoring guide:
 - weak: justification is vague, conclusory, or relies entirely on convenience rather than legal necessity"""
 
         model = cfg.ai_model()
-        message = client.messages.create(
+        message = client.chat.completions.create(
             model=model,
-            max_tokens=1200,
+            max_tokens=800,
             messages=[{
                 "role": "user",
-                "content": [
-                    {
-                        "type": "document",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "application/pdf",
-                            "data": pdf_b64
-                        }
-                    },
-                    {"type": "text", "text": prompt}
-                ]
-            }]
+                "content": f"DOCUMENT CONTENT:\n{pdf_text}\n\n{prompt}"
+            }],
+            response_format={"type": "json_object"},
         )
 
-        block = message.content[0]
-        if not isinstance(block, TextBlock):
-            raise ValueError(f"Unexpected response type: {type(block)}")
-        content = block.text
-        try:
-            result = json.loads(content)
-        except json.JSONDecodeError:
-            cleaned = content.replace("```json", "").replace("```", "").strip()
-            result = json.loads(cleaned)
+        content = message.choices[0].message.content
+        result = _parse_ai_json(content)
 
+        result["log_id"] = usage_db.log_sole_source(f.filename, result)
         return jsonify(result)
 
     except json.JSONDecodeError as e:
@@ -455,6 +523,7 @@ def send_ss_report():
     success = send_email(email, f"Sole Source Letter Analysis: {filename}", text_body, html_body)
     if success is False:
         return jsonify({"error": "Email send failed. Check SMTP configuration."}), 500
+    usage_db.mark_sole_source_emailed(r.get("log_id"), email)
     return jsonify({"ok": True})
 
 
@@ -507,6 +576,30 @@ def api_admin_config_post():
     return jsonify({"ok": True})
 
 
+# ── Usage reporting ───────────────────────────────────────────────
+
+@app.route("/api/admin/usage")
+def admin_usage():
+    if not _admin_authorized():
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify({
+        "totals":       usage_db.totals(),
+        "summary":      usage_db.monthly_summary(),
+        "analyses":     usage_db.recent_analyses(),
+        "sole_source":  usage_db.recent_sole_source(),
+    })
+
+
+@app.route("/admin/usage")
+def admin_usage_page():
+    if not _admin_authorized():
+        return Response(
+            "Unauthorized", 401,
+            {"WWW-Authenticate": 'Basic realm="Procurement Admin"'}
+        )
+    return send_from_directory("static", "admin-usage.html")
+
+
 # ── Vector store admin ────────────────────────────────────────
 
 @app.route("/api/admin/ingest", methods=["POST"])
@@ -520,9 +613,6 @@ def admin_ingest():
     secret = os.getenv("INGEST_SECRET")
     if secret and request.headers.get("X-Ingest-Secret") != secret:
         return jsonify({"error": "Unauthorized"}), 401
-
-    if not os.getenv("OPENAI_API_KEY"):
-        return jsonify({"error": "OPENAI_API_KEY not configured"}), 500
 
     try:
         count = policy_rag.ingest()
