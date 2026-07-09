@@ -113,15 +113,23 @@ class _Config:
 
     def procurement_methods(self, item_type: str) -> list[dict]:
         """
-        Return the ordered tier list for an item type.
-        Falls back to 'other' if item_type not found.
+        Return the ordered tier list for an item type, each tier annotated
+        with a "min" (the top of the previous tier + 0.01, or 0 for the
+        first tier) so each tier represents a distinct, non-overlapping
+        dollar range. Falls back to 'other' if item_type not found.
         """
         methods = self._get("procurement_methods")
-        return methods.get(item_type, methods.get("other", []))
+        tiers = methods.get(item_type, methods.get("other", []))
+        ranged = []
+        low = 0.0
+        for tier in tiers:
+            ranged.append({**tier, "min": low})
+            low = tier["max"] + 0.01
+        return ranged
 
     def get_procurement_method(self, item_type: str,
                                 amount: float) -> dict:
-        """Return the applicable procurement method rule for amount."""
+        """Return the single applicable procurement method rule for amount."""
         tiers = self.procurement_methods(item_type)
         for tier in tiers:
             if amount <= tier["max"]:

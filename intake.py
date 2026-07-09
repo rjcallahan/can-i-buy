@@ -46,6 +46,8 @@ def build_prompt(data: dict) -> str:
         f"    * {f}" for f in data.get("attachments_list", [])
     ) or "    (none)"
 
+    threshold_range = f"${threshold_rule['min']:,.2f}–${threshold_rule['max']:,.2f}"
+
     bid_note = (
         f"NOTE: This request is AT OR ABOVE the ${cfg.bid_threshold(item_type):,.0f} "
         f"competitive bid threshold for {item_type}. "
@@ -54,7 +56,7 @@ def build_prompt(data: dict) -> str:
         f"APPROVE the request and note the bid requirement in next_steps only."
         if is_bid else
         f"NOTE: This request is BELOW the competitive bid threshold. "
-        f"The required method is: {threshold_rule['method']}."
+        f"The required method for this amount range ({threshold_range}) is: {threshold_rule['method']}."
     )
 
     # Retrieve relevant policy passages from the vector store
@@ -73,7 +75,10 @@ def build_prompt(data: dict) -> str:
     is_demo = data.get("demo", False)
     summary_instruction = (
         "2-3 sentences. If the purchase is P-Card eligible, assume it WILL be paid by P-Card — "
-        "state that it will be purchased via P-Card and no vendor quote is needed. "
+        "say: 'This purchase can be made using a P-Card, and no vendor quote is required at this "
+        "stage. The estimated amount is below the threshold for formal bidding requirements. If the "
+        "purchase exceeds your individual P-Card transaction or available credit limit, contact "
+        "Procurement before proceeding.' "
         "If the purchase is NOT P-Card eligible, state what procurement method applies. "
         "If vendor quotes are required, say 'You will need [number] vendor quote(s) when you are "
         "ready to submit this request to Procurement.' "
@@ -194,4 +199,4 @@ Evaluate this request and return ONLY this JSON structure:
   "pcard_note": "explanation of P-Card eligibility decision"
 }}
 
-For valid_methods: list ALL legally permissible procurement methods (Single Quote, 3 Quotes, Competitive Bid, etc.). Do NOT mention P-Card anywhere in valid_methods — not in the method name, description, or documents_needed. P-Card is a payment method handled separately via pcard_eligible and pcard_note. Always include at least one method."""
+For valid_methods: each tier in APPLICABLE PROCUREMENT THRESHOLDS above covers a distinct, non-overlapping dollar range (its "min" to its "max"). Return ONLY the ONE tier whose range contains the Estimated Amount (${amount:,.2f}) — that is "{threshold_rule['method']}" ({threshold_range}). Do NOT include tiers for other amount ranges — e.g. do not show a higher-tier formal bid process alongside a lower-tier method that already applies to this request's actual amount. Do NOT mention P-Card anywhere in valid_methods — not in the method name, description, or documents_needed. P-Card is a payment method handled separately via pcard_eligible and pcard_note. Always include exactly one method."""
