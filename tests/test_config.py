@@ -143,6 +143,12 @@ class TestSigningAuthority:
 
     # Non-public (standard contracts)
 
+    def test_sub_director_approves_up_to_5k(self):
+        assert cfg.approval_role(5_000, False) == "sub_director"
+
+    def test_director_kicks_in_above_5k(self):
+        assert cfg.approval_role(5_001, False) == "director"
+
     def test_director_approves_up_to_25k(self):
         assert cfg.approval_role(25_000, False) == "director"
 
@@ -161,10 +167,12 @@ class TestSigningAuthority:
     def test_city_council_required_above_150k(self):
         assert cfg.approval_role(150_001, False) == "city_council"
 
-    # Public works / construction — higher thresholds
+    # Public works / construction — only ACM and above have authority
 
-    def test_public_director_approves_up_to_25k(self):
-        assert cfg.approval_role(25_000, True) == "director"
+    def test_public_minimum_is_acm(self):
+        # sub_director and director have no public project authority (public_max=0)
+        assert cfg.approval_role(5_000, True)  == "acm"
+        assert cfg.approval_role(25_000, True) == "acm"
 
     def test_public_acm_approves_up_to_60k(self):
         assert cfg.approval_role(60_000, True) == "acm"

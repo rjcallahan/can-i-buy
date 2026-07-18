@@ -219,13 +219,19 @@
   },
   "signing_authority": {
     "_comment": "Approval required based on contract amount and project type",
-    "_note": "non_public = standard contracts, public = public works / construction",
+    "_note": "non_public = standard contracts, public = public works / construction. sub_director covers assistant directors, deputy chiefs, and equivalent positions per Signing Authority Matrix.",
     "levels": [
       {
+        "role": "sub_director",
+        "label": "Assistant / Deputy Director",
+        "non_public_max": 5000,
+        "public_max": 0
+      },
+      {
         "role": "director",
-        "label": "Department Director",
+        "label": "Department Director / Chief",
         "non_public_max": 25000,
-        "public_max": 25000
+        "public_max": 0
       },
       {
         "role": "acm",

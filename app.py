@@ -78,15 +78,23 @@ def compute_approval_chain(amount: float, item_type: str) -> list:
         (i for i, l in enumerate(levels) if l["role"] == required_role),
         len(levels) - 1
     )
+    director_idx  = next(
+        (i for i, l in enumerate(levels) if l["role"] == "director"),
+        0
+    )
 
     if item_type in IT_TYPES:
         dept_head = {"role": "it_director", "label": "IT Director", "note": ""}
     else:
-        dept_head = {"role": "director", "label": "Department Director", "note": ""}
+        dept_head = {"role": "director", "label": "Department Director / Chief", "note": ""}
 
-    if required_idx == 0:
-        return [{**dept_head, "approves": True}]
+    # At or below director level: show only the required signer, no chain above
+    if required_idx <= director_idx:
+        signing = levels[required_idx]
+        label = "IT Director" if item_type in IT_TYPES and signing["role"] == "director" else signing["label"]
+        return [{"role": signing["role"], "label": label, "note": "", "approves": True}]
 
+    # Above director: dept head routes up to required signer
     signing = levels[required_idx]
     return [
         {**dept_head, "approves": False},
