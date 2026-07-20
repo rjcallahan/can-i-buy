@@ -15,8 +15,6 @@ procurement.db
 procurement.db-shm
 procurement.db-wal
 
-# ChromaDB (re-ingested on the volume after deploy)
-chroma_db/
 
 # Uploads (user files — live on Railway volume in production)
 uploads/
