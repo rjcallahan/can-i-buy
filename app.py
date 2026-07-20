@@ -732,6 +732,27 @@ def admin_usage_page():
     return send_from_directory("static", "admin-usage.html")
 
 
+@app.route("/admin/db/download")
+def admin_db_download():
+    if not _admin_authorized():
+        return Response(
+            "Unauthorized", 401,
+            {"WWW-Authenticate": 'Basic realm="Procurement Admin"'}
+        )
+    import shutil, tempfile
+    db_path = usage_db._DB_PATH
+    # Copy first to avoid streaming a live write-locked file
+    tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    tmp.close()
+    shutil.copy2(db_path, tmp.name)
+    return send_from_directory(
+        os.path.dirname(tmp.name),
+        os.path.basename(tmp.name),
+        as_attachment=True,
+        download_name="procurement.db",
+    )
+
+
 # ── Vector store admin ────────────────────────────────────────
 
 @app.route("/api/admin/ingest", methods=["POST"])
