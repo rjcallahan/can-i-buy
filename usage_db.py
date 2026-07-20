@@ -96,7 +96,55 @@ def init() -> None:
             report_emailed      INTEGER DEFAULT 0,
             report_emailed_to   TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS magic_tokens (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            token      TEXT    UNIQUE NOT NULL,
+            email      TEXT    NOT NULL,
+            created_at TEXT    DEFAULT (datetime('now')),
+            expires_at TEXT    NOT NULL,
+            used       INTEGER DEFAULT 0
+        );
         """)
+    try:
+        with _conn() as con:
+            con.execute("ALTER TABLE sole_source_log ADD COLUMN requester_email TEXT")
+    except Exception:
+        pass
+
+
+# ── Magic token helpers ───────────────────────────────────────────
+
+def create_magic_token(email: str) -> str:
+    import secrets, datetime
+    token = secrets.token_urlsafe(32)
+    expires = (datetime.datetime.utcnow() + datetime.timedelta(minutes=15)).isoformat()
+    with _conn() as con:
+        con.execute(
+            "INSERT INTO magic_tokens (token, email, expires_at) VALUES (?,?,?)",
+            (token, email, expires),
+        )
+    return token
+
+
+def consume_magic_token(token: str) -> str | None:
+    """Validate and consume a magic link token. Returns email or None."""
+    import datetime
+    try:
+        with _conn() as con:
+            row = con.execute(
+                "SELECT email, expires_at, used FROM magic_tokens WHERE token=?",
+                (token,),
+            ).fetchone()
+            if not row or row["used"]:
+                return None
+            if datetime.datetime.utcnow().isoformat() > row["expires_at"]:
+                return None
+            con.execute("UPDATE magic_tokens SET used=1 WHERE token=?", (token,))
+            return row["email"]
+    except Exception as e:
+        print(f"[usage_db] consume_magic_token failed: {e}", flush=True)
+        return None
 
 
 # ── Analysis logging ──────────────────────────────────────────────
@@ -161,7 +209,7 @@ def mark_analysis_emailed(log_id: int, email: str) -> None:
 
 # ── Sole source logging ───────────────────────────────────────────
 
-def log_sole_source(filename: str, result: dict) -> int:
+def log_sole_source(filename: str, result: dict, email: str = "") -> int:
     """
     Insert a row for a completed /api/analyze-sole-source call.
     Returns the new row id.
@@ -170,14 +218,15 @@ def log_sole_source(filename: str, result: dict) -> int:
         with _conn() as con:
             cur = con.execute(
                 """
-                INSERT INTO sole_source_log (filename, strength, ready_to_submit, recommendation)
-                VALUES (?,?,?,?)
+                INSERT INTO sole_source_log (filename, strength, ready_to_submit, recommendation, requester_email)
+                VALUES (?,?,?,?,?)
                 """,
                 (
                     filename,
                     result.get("strength"),
                     1 if result.get("ready_to_submit") else 0,
                     result.get("recommendation"),
+                    email,
                 ),
             )
             return cur.lastrowid
@@ -268,7 +317,7 @@ def recent_sole_source(limit: int = 100) -> list[dict]:
                 """
                 SELECT id, created_at, filename, strength,
                        ready_to_submit, recommendation,
-                       report_emailed, report_emailed_to
+                       report_emailed, report_emailed_to, requester_email
                 FROM   sole_source_log
                 ORDER  BY id DESC
                 LIMIT  ?

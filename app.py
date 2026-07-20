@@ -4,7 +4,7 @@ import os
 import json
 import re
 import datetime
-from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context
+from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context, session, redirect
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -16,6 +16,10 @@ load_dotenv()
 usage_db.init()
 
 app = Flask(__name__, static_folder="static")
+import datetime as _dt
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-in-production")
+app.permanent_session_lifetime = _dt.timedelta(days=30)
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ── Email helper ─────────────────────────────────────────────
@@ -64,6 +68,20 @@ def _email_allowed(email: str) -> bool:
     domain  = cfg.allowed_email_domain()
     allowed = set(cfg.allowed_email_addresses())
     return email.endswith(domain) or email in allowed
+
+
+# ── Auth gate ─────────────────────────────────────────────────
+
+@app.before_request
+def require_login():
+    path = request.path
+    if path in ('/login', '/health') or path.startswith('/auth/') or path.startswith('/static/') or path.startswith('/admin'):
+        return
+    if session.get('user_email'):
+        return
+    if request.method == 'POST' or path.startswith('/api/') or path == '/analyze':
+        return jsonify({"error": "Session expired. Please sign in again.", "redirect": "/login"}), 401
+    return redirect('/login')
 
 
 # ── Approval chain helper ─────────────────────────────────────
@@ -144,6 +162,64 @@ def _sanitize_result(result: dict) -> None:
             result[key] = [_CURRENT_CAT.sub("", f).strip() for f in val]
 
 
+# ── Auth routes ───────────────────────────────────────────────
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return send_from_directory("static", "login.html")
+
+    body = request.get_json(silent=True) or {}
+    email = (body.get("email") or "").strip().lower()
+
+    email_re = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+    if not email_re.match(email):
+        return jsonify({"error": "Enter a valid email address."}), 400
+    if not _email_allowed(email):
+        domain = cfg.allowed_email_domain()
+        return jsonify({"error": f"Must be a {domain} email address."}), 400
+
+    token = usage_db.create_magic_token(email)
+    base_url = os.getenv("BASE_URL", request.host_url.rstrip("/"))
+    link = f"{base_url}/auth/{token}"
+
+    sent = send_email(
+        email,
+        "Your Clear2Buy sign-in link",
+        f"Click to sign in to Clear2Buy:\n\n{link}\n\nThis link expires in 15 minutes.",
+        f"""<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+          <h2 style="color:#1f3864">Clear2Buy Sign-In</h2>
+          <p>Click the button below to sign in. This link expires in <strong>15 minutes</strong>.</p>
+          <p style="margin:24px 0">
+            <a href="{link}" style="background:#1f3864;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;font-size:15px">Sign in to Clear2Buy</a>
+          </p>
+          <p style="font-size:12px;color:#888">If you didn't request this, ignore this email.</p>
+        </div>""",
+    )
+
+    if not sent:
+        # Dev mode: RESEND not configured — return link directly
+        return jsonify({"ok": True, "dev_link": link})
+
+    return jsonify({"ok": True})
+
+
+@app.route("/auth/<token>")
+def auth_callback(token):
+    email = usage_db.consume_magic_token(token)
+    if not email:
+        return redirect("/login?error=invalid")
+    session.permanent = True
+    session["user_email"] = email
+    return redirect("/")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
+
 # ── Static routes ─────────────────────────────────────────────
 
 @app.route("/")
@@ -200,6 +276,7 @@ def analyze():
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "No data received"}), 400
+    data["requester_email"] = session.get("user_email", "")
 
     # Skip SSE overhead in tests — return a single SSE-formatted result event
     # so test helpers (get_sse_result) still work without Werkzeug streaming delay.
@@ -461,7 +538,7 @@ Scoring guide:
         content = message.choices[0].message.content
         result = _parse_ai_json(content)
 
-        result["log_id"] = usage_db.log_sole_source(f.filename, result)
+        result["log_id"] = usage_db.log_sole_source(f.filename, result, session.get("user_email", ""))
         return jsonify(result)
 
     except json.JSONDecodeError as e:

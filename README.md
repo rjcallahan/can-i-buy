@@ -107,6 +107,27 @@ Edit **`data/procurement_config.json`** — this is the only file that needs cit
 - The `documents/` folder contains reference policy documents used to build the AI prompt context. Update these for the new city if their policies differ significantly.
 - Do not share API keys between city deployments.
 
+### ChromaDB Vector Store
+
+The vector store (`data/chroma_db/`) is built locally and committed to git — Railway deploys it as static files alongside the app code. It is **not** rebuilt on the server.
+
+**Workflow:**
+1. Add or remove PDFs in `documents/city/`
+2. Run the ingest script locally (requires Ollama with `nomic-embed-text`):
+   ```bash
+   ollama serve   # if not already running
+   python scripts/ingest_documents.py
+   ```
+3. Commit and push — `data/chroma_db/` is tracked in git:
+   ```bash
+   git add data/chroma_db/ documents/
+   git commit -m "Update vector store"
+   git push
+   ```
+4. Railway redeploys automatically with the updated store.
+
+> **Why not ingest on Railway?** The embedding model uses Ollama (`nomic-embed-text`), which runs locally only. If a future deployment needs server-side ingestion, switch `_embed_model()` in `policy_rag.py` to use OpenAI embeddings — Railway already has `OPENAI_API_KEY` available.
+
 ## Testing
 
 - python -m pytest

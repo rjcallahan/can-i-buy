@@ -42,7 +42,7 @@
       <div class="agency" style="display: none">
         City of Palm Springs — Procurement Advisor
       </div>
-      <div class="nav"></div>
+      <div class="nav"><a href="/logout" style="font-size:13px;color:#cdd8e8;text-decoration:none;opacity:0.8">Sign out</a></div>
     </header>
 
     <div class="page-wrap">
@@ -592,9 +592,6 @@
         if (!validateForm()) return;
 
         const data = {
-          demo: true,
-          requester_name: "Demo User",
-          requester_email: "demo@palmspringsca.gov",
           item_name: getVal("item_name"),
           description: getVal("description"),
           department: getVal("department"),
