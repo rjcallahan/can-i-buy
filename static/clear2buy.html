@@ -212,22 +212,6 @@
                 id="sole-source-fields"
                 style="display: none"
               >
-                <div class="field full">
-                  <label
-                    >Sole source reason
-                    <span style="font-weight: 400; color: #777"
-                      >(optional)</span
-                    ></label
-                  >
-                  <textarea
-                    id="sole_source_justification"
-                    placeholder="Briefly describe why only one vendor can provide this. You will need to submit a formal sole source justification document with your request."
-                  ></textarea>
-                  <div class="err-msg" id="err-sole_source_justification">
-                    Required
-                  </div>
-                </div>
-
                 <!-- Sole source letter validator -->
                 <div class="field full" style="margin-top: 4px">
                   <label
@@ -372,6 +356,94 @@
         >
           ← Check Another Purchase
         </button>
+      </div>
+    </div>
+
+    <!-- Sole Source Interview Modal -->
+    <div id="ss-interview-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;overflow-y:auto;padding:20px 16px">
+      <div style="background:#fff;max-width:620px;margin:0 auto;border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18)">
+        <div style="background:#1f3864;padding:16px 24px;display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div style="color:#fff;font-size:15px;font-weight:700">Sole Source Interview</div>
+            <div id="ss-modal-filename" style="color:#cdd8e8;font-size:12px;margin-top:2px"></div>
+          </div>
+          <button type="button" onclick="closeSsModal()" style="background:none;border:none;color:#cdd8e8;font-size:22px;line-height:1;cursor:pointer;padding:0;margin-left:12px">×</button>
+        </div>
+        <div style="padding:20px 24px 24px">
+          <p style="font-size:13px;color:#555;margin:0 0 18px;line-height:1.5">Answer the questions below. Your responses will be analyzed alongside the letter to provide a more accurate assessment.</p>
+
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">Why is competition not possible? <span style="color:#c0392b">*</span></label>
+            <textarea id="ss-q1" rows="2" placeholder="Explain why this cannot go through competitive bidding…" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea>
+            <div id="ss-q1-err" style="display:none;font-size:12px;color:#c0392b;margin-top:3px">Required</div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">What market research did you perform?</label>
+            <textarea id="ss-q2" rows="2" placeholder="Describe any vendor searches, internet research, industry contacts, etc." style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">How many vendors were considered?</label>
+            <textarea id="ss-q3" rows="2" placeholder="List vendors reviewed and why they were found unsuitable…" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">What evidence proves only one vendor can meet the requirement?</label>
+            <textarea id="ss-q4" rows="2" placeholder="Technical specs, patents, certifications, authorized dealer status, etc." style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">What would happen if another vendor were selected?</label>
+            <textarea id="ss-q5" rows="2" placeholder="Describe operational impact, safety risks, compatibility issues, cost implications, etc." style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">Are there proprietary rights involved?</label>
+            <div style="display:flex;gap:20px;margin-bottom:6px">
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="ss-q6" value="no" checked onchange="toggleSsExplain('q6',this.value)"> No</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="ss-q6" value="yes" onchange="toggleSsExplain('q6',this.value)"> Yes</label>
+            </div>
+            <div id="ss-q6-explain" style="display:none"><textarea id="ss-q6-text" rows="2" placeholder="Describe the proprietary rights…" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea></div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">Is compatibility technically required?</label>
+            <div style="display:flex;gap:20px;margin-bottom:6px">
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="ss-q7" value="no" checked onchange="toggleSsExplain('q7',this.value)"> No</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="ss-q7" value="yes" onchange="toggleSsExplain('q7',this.value)"> Yes</label>
+            </div>
+            <div id="ss-q7-explain" style="display:none"><textarea id="ss-q7-text" rows="2" placeholder="Describe the compatibility requirement…" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea></div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">Is this actually an emergency?</label>
+            <div style="display:flex;gap:20px;margin-bottom:6px">
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="ss-q8" value="no" checked onchange="toggleSsExplain('q8',this.value)"> No</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="ss-q8" value="yes" onchange="toggleSsExplain('q8',this.value)"> Yes</label>
+            </div>
+            <div id="ss-q8-explain" style="display:none"><textarea id="ss-q8-text" rows="2" placeholder="Describe the nature of the emergency…" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea></div>
+          </div>
+
+          <div style="margin-bottom:18px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">Are there acceptable alternatives?</label>
+            <div style="display:flex;gap:20px;margin-bottom:6px">
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="ss-q9" value="no" checked onchange="toggleSsExplain('q9',this.value)"> No</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="ss-q9" value="yes" onchange="toggleSsExplain('q9',this.value)"> Yes</label>
+            </div>
+            <div id="ss-q9-explain" style="display:none"><textarea id="ss-q9-text" rows="2" placeholder="Describe the alternatives and why they are inadequate…" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #c8d6e5;border-radius:6px;font-size:13px;resize:vertical;outline:none;font-family:inherit"></textarea></div>
+          </div>
+
+          <div style="margin-bottom:22px">
+            <label style="display:block;font-size:13px;font-weight:600;color:#1f3864;margin-bottom:5px">Upload supporting documentation <span style="font-weight:400;color:#777">(optional — PDF)</span></label>
+            <input type="file" id="ss-support-files" accept=".pdf" multiple style="font-size:13px;padding:4px 0">
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button type="button" onclick="closeSsModal()" style="padding:10px 20px;background:#fff;color:#1f3864;border:1.5px solid #1f3864;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer">Cancel</button>
+            <button type="button" onclick="submitSsInterview()" style="padding:10px 24px;background:#1f3864;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer">Analyze Letter</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -529,7 +601,6 @@
           item_type: getVal("item_type"),
           amount: parseFloat(getVal("amount")) || 0,
           sole_source: getRadio("sole_source"),
-          sole_source_justification: getVal("sole_source_justification"),
           faa_governed: getRadio("faa_governed"),
           attachments_list: [],
         };
@@ -869,13 +940,47 @@
         document.getElementById("ss-validate-result").style.display = "none";
       }
 
-      async function validateSsLetter() {
+      function validateSsLetter() {
+        var fileInput = document.getElementById("ss-letter-file");
+        if (!fileInput.files || !fileInput.files.length) return;
+        document.getElementById("ss-modal-filename").textContent = fileInput.files[0].name;
+        document.getElementById("ss-interview-modal").style.display = "block";
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeSsModal() {
+        document.getElementById("ss-interview-modal").style.display = "none";
+        document.body.style.overflow = "";
+      }
+
+      function toggleSsExplain(q, val) {
+        var el = document.getElementById("ss-" + q + "-explain");
+        if (el) el.style.display = val === "yes" ? "block" : "none";
+      }
+
+      async function submitSsInterview() {
+        var q1 = (document.getElementById("ss-q1").value || "").trim();
+        if (!q1) {
+          document.getElementById("ss-q1-err").style.display = "block";
+          document.getElementById("ss-q1").focus();
+          return;
+        }
+        document.getElementById("ss-q1-err").style.display = "none";
+
+        var getText = function(id) { return (document.getElementById(id)?.value || "").trim(); };
+        var getRadio = function(name) { return document.querySelector('input[name="' + name + '"]:checked')?.value || "no"; };
+        var yesNo = function(radioName, textId) {
+          var val = getRadio(radioName);
+          var txt = getText(textId);
+          return val === "yes" ? (txt ? "Yes — " + txt : "Yes") : "No";
+        };
+
+        closeSsModal();
+
         var fileInput = document.getElementById("ss-letter-file");
         var btn = document.getElementById("ss-validate-btn");
         var loading = document.getElementById("ss-validate-loading");
         var resultDiv = document.getElementById("ss-validate-result");
-
-        if (!fileInput.files || !fileInput.files.length) return;
 
         btn.disabled = true;
         btn.style.opacity = "0.5";
@@ -884,6 +989,22 @@
 
         var formData = new FormData();
         formData.append("file", fileInput.files[0]);
+        formData.append("q1", q1);
+        formData.append("q2", getText("ss-q2"));
+        formData.append("q3", getText("ss-q3"));
+        formData.append("q4", getText("ss-q4"));
+        formData.append("q5", getText("ss-q5"));
+        formData.append("q6", yesNo("ss-q6", "ss-q6-text"));
+        formData.append("q7", yesNo("ss-q7", "ss-q7-text"));
+        formData.append("q8", yesNo("ss-q8", "ss-q8-text"));
+        formData.append("q9", yesNo("ss-q9", "ss-q9-text"));
+
+        var supportFiles = document.getElementById("ss-support-files");
+        if (supportFiles && supportFiles.files.length) {
+          for (var i = 0; i < supportFiles.files.length; i++) {
+            formData.append("support_files", supportFiles.files[i]);
+          }
+        }
 
         try {
           var res = await fetch("/api/analyze-sole-source", {
@@ -891,19 +1012,12 @@
             body: formData,
           });
           var r = await res.json();
-          if (!res.ok || r.error)
-            throw new Error(r.error || "Analysis failed.");
-          window._lastSsResult = {
-            result: r,
-            filename: fileInput.files[0].name,
-          };
+          if (!res.ok || r.error) throw new Error(r.error || "Analysis failed.");
+          window._lastSsResult = { result: r, filename: fileInput.files[0].name };
           resultDiv.innerHTML = buildSsResultHTML(r);
           resultDiv.style.display = "block";
         } catch (e) {
-          resultDiv.innerHTML =
-            '<div style="color:#c0392b;font-size:13px">⚠️ ' +
-            e.message +
-            "</div>";
+          resultDiv.innerHTML = '<div style="color:#c0392b;font-size:13px">⚠️ ' + e.message + "</div>";
           resultDiv.style.display = "block";
         } finally {
           loading.style.display = "none";
@@ -1107,8 +1221,6 @@
         document.getElementById("description").value = "";
         document.getElementById("department").value = "";
         document.getElementById("amount-hint").textContent = "";
-        document.getElementById("sole_source_justification").value = "";
-
         // Reset radios
         document.getElementById("ss-no").checked = true;
         document.getElementById("faa-no").checked = true;

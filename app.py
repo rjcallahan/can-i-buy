@@ -371,6 +371,45 @@ def analyze_sole_source():
         pdf_text = "\n".join(page.get_text() for page in pdf_doc)
         pdf_doc.close()
 
+        # Process optional supporting documents
+        support_texts = []
+        for sup in request.files.getlist("support_files"):
+            if sup and sup.filename.lower().endswith(".pdf"):
+                try:
+                    sup_doc = fitz.open(stream=sup.read(), filetype="pdf")
+                    sup_text = "\n".join(page.get_text() for page in sup_doc)
+                    sup_doc.close()
+                    if sup_text.strip():
+                        support_texts.append(f"[Supporting document: {sup.filename}]\n{sup_text.strip()}")
+                except Exception:
+                    pass
+
+        # Build interview context from requester responses
+        interview_fields = [
+            ("q1", "Why competition is not possible"),
+            ("q2", "Market research performed"),
+            ("q3", "Vendors considered"),
+            ("q4", "Evidence only one vendor qualifies"),
+            ("q5", "Impact if another vendor selected"),
+            ("q6", "Proprietary rights involved"),
+            ("q7", "Compatibility technically required"),
+            ("q8", "Emergency status"),
+            ("q9", "Acceptable alternatives"),
+        ]
+        interview_parts = [
+            f"- {label}: {val}"
+            for key, label in interview_fields
+            if (val := request.form.get(key, "").strip())
+        ]
+        interview_context = (
+            "REQUESTER INTERVIEW RESPONSES:\n" + "\n".join(interview_parts) + "\n\n"
+            if interview_parts else ""
+        )
+
+        all_docs = pdf_text
+        if support_texts:
+            all_docs += "\n\n" + "\n\n".join(support_texts)
+
         prompt = f"""You are a public procurement compliance officer reviewing a sole source justification letter.
 
 Evaluate this letter strictly against the recognized legal bases for sole source procurement under {cfg.city_name()} procurement policy.
@@ -414,7 +453,7 @@ Scoring guide:
             max_tokens=800,
             messages=[{
                 "role": "user",
-                "content": f"DOCUMENT CONTENT:\n{pdf_text}\n\n{prompt}"
+                "content": f"DOCUMENT CONTENT:\n{all_docs}\n\n{interview_context}{prompt}"
             }],
             response_format={"type": "json_object"},
         )
