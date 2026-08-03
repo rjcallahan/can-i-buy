@@ -28,11 +28,13 @@ import json
 import os
 from typing import Any
 
+_TENANT = os.getenv("TENANT", "palm-springs")
 _VOLUME_PATH = "/data/procurement_config.json"
 _REPO_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "data",
-    "procurement_config.json"
+    "tenants",
+    _TENANT,
+    "config.json"
 )
 # Always allowed for testing, on every city deployment — not city config
 # because a city's own edits to mail.allowed_addresses shouldn't remove it.
@@ -194,6 +196,12 @@ class _Config:
         except KeyError:
             configured = []
         return list(dict.fromkeys(configured + _DEV_TEST_EMAILS))
+
+    def admin_emails(self) -> list[str]:
+        try:
+            return list(self._get("admin", "emails") or [])
+        except KeyError:
+            return []
 
     # ── City defaults ─────────────────────────────────────────
 

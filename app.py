@@ -78,6 +78,11 @@ def _email_allowed(email: str) -> bool:
     return email.endswith(domain) or email in allowed
 
 
+def _is_admin(email: str) -> bool:
+    master = os.getenv("ADMIN_USERNAME", "").strip().lower()
+    return bool(email) and (email == master or email in cfg.admin_emails())
+
+
 # ── Auth gate ─────────────────────────────────────────────────
 
 @app.before_request
@@ -683,6 +688,11 @@ def get_mail_domain():
         "allowed_domain":    cfg.allowed_email_domain(),
         "allowed_addresses": cfg.allowed_email_addresses(),
     })
+
+
+@app.route("/api/config/is-admin")
+def get_is_admin():
+    return jsonify({"is_admin": _is_admin(session.get("user_email", ""))})
 
 
 # ── Admin config editor ───────────────────────────────────────

@@ -7,7 +7,7 @@ procurement decision the app makes, this is the highest-value test
 surface: a wrong threshold or approval tier is a real compliance error.
 
 All assertions use the known Palm Springs values from
-data/procurement_config.json. If a value changes in the config file,
+tenants/palm-springs/config.json. If a value changes in the config file,
 the test will fail — intentionally, to catch accidental edits.
 """
 from procurement_config import cfg

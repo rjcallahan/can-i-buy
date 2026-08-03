@@ -44,6 +44,12 @@
     "Procurement",
     "Utilities & Water Resources"
   ],
+  "admin": {
+    "_comment": "Emails granted admin dashboard access, in addition to the master ADMIN_USERNAME env var.",
+    "emails": [
+      "rjames.callahan@gmail.com"
+    ]
+  },
   "mail": {
     "_comment": "Outbound email (Zoho SMTP). Set smtp_password via SMTP_PASSWORD env var — never store passwords here.",
     "allowed_addresses": [

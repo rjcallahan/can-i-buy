@@ -42,7 +42,10 @@
       <div class="agency" style="display: none">
         City of Palm Springs — Procurement Advisor
       </div>
-      <div class="nav"><a href="/logout" style="font-size:13px;color:#cdd8e8;text-decoration:none;opacity:0.8">Sign out</a></div>
+      <div class="nav">
+        <a href="/dashboard" id="dashboard-link" style="display:none;font-size:13px;color:#cdd8e8;text-decoration:none;opacity:0.8;margin-right:16px">Dashboard</a>
+        <a href="/logout" style="font-size:13px;color:#cdd8e8;text-decoration:none;opacity:0.8">Sign out</a>
+      </div>
     </header>
 
     <div class="page-wrap">
@@ -527,6 +530,19 @@
         } catch (e) {
           console.warn("Departments API unavailable, using fallback:", e);
           populateDepartments(FALLBACK_DEPARTMENTS);
+        }
+      })();
+
+      // ── Show Dashboard link for admins ──────────────────────────
+      (async function loadAdminStatus() {
+        try {
+          const res = await fetch("/api/config/is-admin");
+          const data = await res.json();
+          if (data.is_admin) {
+            document.getElementById("dashboard-link").style.display = "inline";
+          }
+        } catch (e) {
+          console.warn("Admin status check failed:", e);
         }
       })();
 

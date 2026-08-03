@@ -2,7 +2,7 @@
 """
 Vector store interface for policy document retrieval.
 
-Documents are ingested from the `documents/` folder (or DATA_DIR/documents on Railway)
+Documents are ingested from tenants/<TENANT>/documents (or DATA_DIR/documents on Railway)
 into a persistent ChromaDB collection. At analysis time, relevant policy passages are
 retrieved and injected into the Claude prompt instead of hardcoded rules.
 
@@ -12,13 +12,16 @@ This makes the app city-agnostic: swap the documents and re-ingest, no code chan
 import contextlib
 import os
 
+_TENANT      = os.getenv("TENANT", "palm-springs")
 _BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+_TENANT_DIR  = os.path.join(_BASE_DIR, "tenants", _TENANT)
 _DATA_DIR    = os.getenv("DATA_DIR", os.path.join(_BASE_DIR, "data"))
 _CHROMA_PATH = os.path.join(_DATA_DIR, "chroma_db")
+_REPO_CHROMA = os.path.join(_TENANT_DIR, "chroma_db")
 
-# Documents: Railway volume path takes priority, falls back to repo folder
+# Documents: Railway volume path takes priority, falls back to the tenant's repo folder
 _VOLUME_DOCS = "/data/documents"
-_REPO_DOCS   = os.path.join(_BASE_DIR, "documents")
+_REPO_DOCS   = os.path.join(_TENANT_DIR, "documents")
 _DOCS_PATH   = (
     os.getenv("DOCS_PATH")
     or (_VOLUME_DOCS if os.path.exists(_VOLUME_DOCS) else _REPO_DOCS)
@@ -37,6 +40,9 @@ def _embed_model():
 
 def _collection(reset: bool = False):
     import chromadb
+    if not os.path.exists(_CHROMA_PATH) and os.path.exists(_REPO_CHROMA):
+        import shutil
+        shutil.copytree(_REPO_CHROMA, _CHROMA_PATH)
     client = chromadb.PersistentClient(path=_CHROMA_PATH)
     if reset:
         with contextlib.suppress(Exception):
