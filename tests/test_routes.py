@@ -8,9 +8,8 @@ The Flask test client is provided by the `client` fixture in conftest.py.
 """
 import base64
 import json
-import pytest
-from unittest.mock import patch, MagicMock
-
+from typing import ClassVar
+from unittest.mock import MagicMock, patch
 
 # ── Helpers ───────────────────────────────────────────────────────
 
@@ -38,7 +37,7 @@ def get_sse_result(response) -> dict:
             event = json.loads(line[6:])
             if event.get("type") == "result":
                 return event["data"]
-    return None
+    raise AssertionError("No 'result' event found in SSE response")
 
 
 # ── Representative payloads ────────────────────────────────────────
@@ -231,9 +230,9 @@ class TestAnalyzeEndpoint:
              patch("intake.build_prompt", return_value="test prompt"):
             r = client.post("/analyze", json=payload)
         chain = get_sse_result(r)["approval_chain"]
-        # $5,000 supplies → director approves solo
+        # $5,000 supplies → sub_director approves solo
         assert len(chain) == 1
-        assert chain[0]["role"] == "director"
+        assert chain[0]["role"] == "sub_director"
         assert chain[0]["approves"] is True
 
     def test_analyze_approval_chain_correct_for_large_purchase(self, client):
@@ -250,7 +249,7 @@ class TestAnalyzeEndpoint:
 
 class TestSendReportEndpoint:
 
-    BASE_PAYLOAD = {
+    BASE_PAYLOAD: ClassVar[dict] = {
         "data": {
             "item_name": "Test Item",
             "amount": 500,
@@ -304,7 +303,7 @@ class TestSendReportEndpoint:
 
 class TestSendSsReportEndpoint:
 
-    BASE_PAYLOAD = {
+    BASE_PAYLOAD: ClassVar[dict] = {
         "filename": "sole-source-letter.pdf",
         "result": {
             "strength": "adequate",

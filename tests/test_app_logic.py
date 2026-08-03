@@ -8,9 +8,7 @@ so they run fast and test the core business logic directly:
   compute_approval_chain()  — which roles must approve a purchase
   _sanitize_result()        — clean up AI output before returning to client
 """
-import pytest
-from app import _email_allowed, compute_approval_chain, _sanitize_result
-
+from app import _email_allowed, _sanitize_result, compute_approval_chain
 
 # ── _email_allowed ────────────────────────────────────────────────
 
@@ -50,10 +48,10 @@ class TestComputeApprovalChain:
 
     # --- Single-level chains (director signs) ---
 
-    def test_small_amount_director_approves(self):
+    def test_small_amount_sub_director_approves(self):
         chain = compute_approval_chain(5_000, "supplies")
         assert len(chain) == 1
-        assert chain[0]["role"] == "director"
+        assert chain[0]["role"] == "sub_director"
         assert chain[0]["approves"] is True
 
     def test_exactly_at_director_limit_still_director(self):
@@ -112,12 +110,13 @@ class TestComputeApprovalChain:
     # --- IT types use IT Director label ---
 
     def test_it_equipment_uses_it_director(self):
-        chain = compute_approval_chain(10_000, "it_equipment")
+        # $30,000 is above the director tier, so IT Director reviews before the signer
+        chain = compute_approval_chain(30_000, "it_equipment")
         assert chain[0]["role"] == "it_director"
         assert chain[0]["label"] == "IT Director"
 
     def test_it_software_uses_it_director(self):
-        chain = compute_approval_chain(10_000, "it_software")
+        chain = compute_approval_chain(30_000, "it_software")
         assert chain[0]["role"] == "it_director"
 
     def test_non_it_uses_department_director(self):

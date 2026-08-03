@@ -1,5 +1,6 @@
 # intake.py
 import json
+
 import policy_rag
 from procurement_config import cfg
 
@@ -46,7 +47,7 @@ def build_prompt(data: dict) -> str:
         f"    * {f}" for f in data.get("attachments_list", [])
     ) or "    (none)"
 
-    threshold_range = f"${threshold_rule['min']:,.2f}–${threshold_rule['max']:,.2f}"
+    threshold_range = f"${threshold_rule['min']:,.2f}-${threshold_rule['max']:,.2f}"
 
     bid_note = (
         f"NOTE: This request is AT OR ABOVE the ${cfg.bid_threshold(item_type):,.0f} "

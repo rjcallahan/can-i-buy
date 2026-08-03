@@ -9,6 +9,7 @@ retrieved and injected into the Claude prompt instead of hardcoded rules.
 This makes the app city-agnostic: swap the documents and re-ingest, no code changes needed.
 """
 
+import contextlib
 import os
 
 _BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
@@ -38,10 +39,8 @@ def _collection(reset: bool = False):
     import chromadb
     client = chromadb.PersistentClient(path=_CHROMA_PATH)
     if reset:
-        try:
+        with contextlib.suppress(Exception):
             client.delete_collection(COLLECTION)
-        except Exception:
-            pass
     return client.get_or_create_collection(COLLECTION)
 
 
@@ -52,7 +51,7 @@ def ingest(docs_path: str | None = None, reset: bool = True) -> int:
     Returns number of source documents ingested.
     """
     import fitz  # PyMuPDF
-    from llama_index.core import VectorStoreIndex, StorageContext, Settings
+    from llama_index.core import Settings, StorageContext, VectorStoreIndex
     from llama_index.core.node_parser import SentenceSplitter
     from llama_index.core.schema import Document
     from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -74,7 +73,7 @@ def ingest(docs_path: str | None = None, reset: bool = True) -> int:
             category = os.path.basename(root)
             try:
                 pdf  = fitz.open(fpath)
-                text = "\n".join(page.get_text() for page in pdf)
+                text = "\n".join(str(page.get_text()) for page in pdf)
                 pdf.close()
                 if text.strip():
                     docs.append(Document(
@@ -104,7 +103,7 @@ def query(queries: list[str], top_k: int = 4) -> str:
     Retrieve relevant policy passages for the given queries.
     Returns concatenated source-labelled text, or empty string if store not ready.
     """
-    from llama_index.core import VectorStoreIndex, StorageContext, Settings
+    from llama_index.core import Settings, StorageContext, VectorStoreIndex
     from llama_index.vector_stores.chroma import ChromaVectorStore
 
     try:

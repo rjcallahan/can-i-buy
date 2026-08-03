@@ -69,6 +69,8 @@ def init() -> None:
             amount              REAL,
             account_code        TEXT,
             description         TEXT,
+            process_timing      TEXT,
+            required_date       TEXT,
             -- Policy flags
             pcard               TEXT,
             sole_source         TEXT,
@@ -111,14 +113,27 @@ def init() -> None:
             con.execute("ALTER TABLE sole_source_log ADD COLUMN requester_email TEXT")
     except Exception:
         pass
+    try:
+        with _conn() as con:
+            con.execute("ALTER TABLE analysis_log ADD COLUMN required_date TEXT")
+    except Exception:
+        pass
+    try:
+        with _conn() as con:
+            con.execute("ALTER TABLE analysis_log ADD COLUMN process_timing TEXT")
+    except Exception:
+        pass
 
 
 # ── Magic token helpers ───────────────────────────────────────────
 
 def create_magic_token(email: str) -> str:
-    import secrets, datetime
+    import datetime
+    import secrets
     token = secrets.token_urlsafe(32)
-    expires = (datetime.datetime.utcnow() + datetime.timedelta(minutes=15)).isoformat()
+    expires = (
+        datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15)
+    ).isoformat()
     with _conn() as con:
         con.execute(
             "INSERT INTO magic_tokens (token, email, expires_at) VALUES (?,?,?)",
@@ -138,7 +153,7 @@ def consume_magic_token(token: str) -> str | None:
             ).fetchone()
             if not row or row["used"]:
                 return None
-            if datetime.datetime.utcnow().isoformat() > row["expires_at"]:
+            if datetime.datetime.now(datetime.UTC).isoformat() > row["expires_at"]:
                 return None
             con.execute("UPDATE magic_tokens SET used=1 WHERE token=?", (token,))
             return row["email"]
@@ -165,9 +180,10 @@ def log_analysis(data: dict, result: dict) -> int:
                 INSERT INTO analysis_log
                     (requester_name, requester_email, department,
                      item_name, item_type, amount, account_code, description,
+                     process_timing, required_date,
                      pcard, sole_source, federal_funds, faa_governed,
                      verdict, procurement_method, approval_role)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 (
                     data.get("requester_name"),
@@ -178,6 +194,8 @@ def log_analysis(data: dict, result: dict) -> int:
                     float(data.get("amount") or 0),
                     data.get("account_code"),
                     data.get("description"),
+                    data.get("process_timing"),
+                    data.get("required_date"),
                     data.get("pcard"),
                     data.get("sole_source"),
                     data.get("federal_funds"),
@@ -187,7 +205,7 @@ def log_analysis(data: dict, result: dict) -> int:
                     approval_role,
                 ),
             )
-            return cur.lastrowid
+            return cur.lastrowid or 0
     except Exception as e:
         print(f"[usage_db] log_analysis failed: {e}", flush=True)
         return 0
@@ -229,7 +247,7 @@ def log_sole_source(filename: str, result: dict, email: str = "") -> int:
                     email,
                 ),
             )
-            return cur.lastrowid
+            return cur.lastrowid or 0
     except Exception as e:
         print(f"[usage_db] log_sole_source failed: {e}", flush=True)
         return 0
@@ -294,7 +312,7 @@ def recent_analyses(limit: int = 250) -> list[dict]:
             rows = con.execute(
                 """
                 SELECT id, created_at, department, item_name, item_type,
-                       amount, verdict, procurement_method, approval_role,
+                       amount, process_timing, required_date, verdict, procurement_method, approval_role,
                        sole_source, faa_governed, federal_funds,
                        report_emailed, report_emailed_to
                 FROM   analysis_log

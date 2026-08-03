@@ -152,13 +152,15 @@ tr:hover td{background:#fafbfd}
           <th>Item</th>
           <th>Type</th>
           <th style="text-align:right">Amount</th>
+          <th>Timing</th>
+          <th>Required Date</th>
           <th>Verdict</th>
           <th>Method</th>
           <th>Approver</th>
           <th>Flags</th>
           <th>Emailed</th>
         </tr></thead>
-        <tbody id="analyses-tbody"><tr><td colspan="10" class="empty">Loading…</td></tr></tbody>
+        <tbody id="analyses-tbody"><tr><td colspan="12" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -302,7 +304,7 @@ function renderAnalyses(rows) {
   const tbody = document.getElementById('analyses-tbody');
   document.getElementById('analysis-count').textContent = rows.length + ' rows';
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="empty">No analyses recorded yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12" class="empty">No analyses recorded yet</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => `<tr>
@@ -311,6 +313,8 @@ function renderAnalyses(rows) {
     <td title="${r.item_name || ''}">${r.item_name || '–'}</td>
     <td style="white-space:nowrap">${fmtType(r.item_type)}</td>
     <td style="text-align:right;font-variant-numeric:tabular-nums">${fmtAmount(r.amount)}</td>
+    <td style="white-space:nowrap">${r.process_timing === 'expedited' ? 'Expedited' : 'Normal'}</td>
+    <td style="white-space:nowrap">${r.required_date || '–'}</td>
     <td>${verdictBadge(r.verdict)}</td>
     <td title="${r.procurement_method||''}" style="max-width:160px">${r.procurement_method || '–'}</td>
     <td style="white-space:nowrap">${fmtRole(r.approval_role)}</td>

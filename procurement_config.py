@@ -58,12 +58,11 @@ class _Config:
 
     def _load(self):
         # If volume path doesn't exist but repo copy does, bootstrap the volume
-        if not os.path.exists(self._path) and self._path == _VOLUME_PATH:
-            if os.path.exists(_REPO_PATH):
-                import shutil
-                os.makedirs(os.path.dirname(_VOLUME_PATH), exist_ok=True)
-                shutil.copy(_REPO_PATH, _VOLUME_PATH)
-                print(f"Bootstrapped config from repo to {_VOLUME_PATH}", flush=True)
+        if not os.path.exists(self._path) and self._path == _VOLUME_PATH and os.path.exists(_REPO_PATH):
+            import shutil
+            os.makedirs(os.path.dirname(_VOLUME_PATH), exist_ok=True)
+            shutil.copy(_REPO_PATH, _VOLUME_PATH)
+            print(f"Bootstrapped config from repo to {_VOLUME_PATH}", flush=True)
 
         if not os.path.exists(self._path):
             raise FileNotFoundError(

@@ -121,6 +121,45 @@
                 <div class="err-msg" id="err-amount">Required</div>
               </div>
 
+              <!-- Timing -->
+              <div class="field">
+                <label>Timing</label>
+                <div class="toggle-group">
+                  <input
+                    type="radio"
+                    name="process_timing"
+                    id="timing-normal"
+                    value="normal"
+                    checked
+                    onchange="onProcessTimingChange()"
+                  />
+                  <label for="timing-normal">Normal</label>
+                  <input
+                    type="radio"
+                    name="process_timing"
+                    id="timing-expedited"
+                    value="expedited"
+                    onchange="onProcessTimingChange()"
+                  />
+                  <label for="timing-expedited">Expedited</label>
+                </div>
+                <div
+                  id="required-date-wrap"
+                  style="
+                    display: none;
+                    margin-top: 8px;
+                    align-items: center;
+                    gap: 8px;
+                  "
+                >
+                  <label for="required_date" style="white-space: nowrap"
+                    >Required By</label
+                  >
+                  <input type="date" id="required_date" />
+                  <div class="err-msg" id="err-required_date">Required</div>
+                </div>
+              </div>
+
               <!-- Description -->
               <div class="field full">
                 <label
@@ -551,6 +590,19 @@
           : "none";
       }
 
+      function onProcessTimingChange() {
+        const expedited =
+          document.querySelector('input[name="process_timing"]:checked')
+            ?.value === "expedited";
+        document.getElementById("required-date-wrap").style.display = expedited
+          ? "flex"
+          : "none";
+        if (!expedited) {
+          document.getElementById("required_date").value = "";
+          setErr("required_date", false);
+        }
+      }
+
       // ── Helpers ──────────────────────────────────────────────
       function getVal(id) {
         return (document.getElementById(id)?.value || "").trim();
@@ -584,6 +636,11 @@
           if (empty) ok = false;
         });
 
+        const expedited = getRadio("process_timing") === "expedited";
+        const dateEmpty = expedited && !getVal("required_date");
+        setErr("required_date", dateEmpty);
+        if (dateEmpty) ok = false;
+
         return ok;
       }
 
@@ -597,6 +654,8 @@
           department: getVal("department"),
           item_type: getVal("item_type"),
           amount: parseFloat(getVal("amount")) || 0,
+          process_timing: getRadio("process_timing"),
+          required_date: getVal("required_date"),
           sole_source: getRadio("sole_source"),
           faa_governed: getRadio("faa_governed"),
           attachments_list: [],
@@ -732,6 +791,11 @@
                   ${data.item_name}
                 </div>
                 <div style="font-size:13px;color:#555">${data.description}</div>
+                ${
+                  data.process_timing === "expedited" && data.required_date
+                    ? `<div style="font-size:13px;color:#555;margin-top:4px">Expedited — required by ${data.required_date}</div>`
+                    : ""
+                }
               </div>
               <p class="result-summary">${r.summary || ""}</p>
               ${methodHTML}${faaHTML}${approvalHTML}${missingHTML}${flagsHTML}${docsHTML}${nextHTML}
@@ -1215,12 +1279,15 @@
         document.getElementById("item_name").value = "";
         document.getElementById("item_type").value = "";
         document.getElementById("amount").value = "";
+        document.getElementById("required_date").value = "";
         document.getElementById("description").value = "";
         document.getElementById("department").value = "";
         document.getElementById("amount-hint").textContent = "";
         // Reset radios
         document.getElementById("ss-no").checked = true;
         document.getElementById("faa-no").checked = true;
+        document.getElementById("timing-normal").checked = true;
+        document.getElementById("required-date-wrap").style.display = "none";
 
         // Hide conditional sections
         document.getElementById("sole-source-fields").style.display = "none";
@@ -1243,6 +1310,7 @@
           "amount",
           "description",
           "department",
+          "required_date",
         ].forEach(function (f) {
           setErr(f, false);
         });

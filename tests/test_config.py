@@ -10,9 +10,7 @@ All assertions use the known Palm Springs values from
 data/procurement_config.json. If a value changes in the config file,
 the test will fail — intentionally, to catch accidental edits.
 """
-import pytest
 from procurement_config import cfg
-
 
 # ── Bid thresholds ────────────────────────────────────────────────
 
@@ -191,7 +189,7 @@ class TestSigningAuthority:
 
     def test_signing_levels_ordered_lowest_to_highest(self):
         levels = cfg.signing_authority_levels()
-        non_pub_maxes = [l["non_public_max"] for l in levels]
+        non_pub_maxes = [lvl["non_public_max"] for lvl in levels]
         assert non_pub_maxes == sorted(non_pub_maxes)
 
 
