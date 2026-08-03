@@ -83,7 +83,7 @@ def _email_allowed(email: str) -> bool:
 @app.before_request
 def require_login():
     path = request.path
-    if path in ('/login', '/health') or path.startswith(('/auth/', '/static/', '/admin')):
+    if path in ('/login', '/health', '/dashboard') or path.startswith(('/auth/', '/static/', '/admin', '/api/admin')):
         return
     if session.get('user_email'):
         return
@@ -729,7 +729,12 @@ def api_admin_config_post():
 
 # ── Usage reporting ───────────────────────────────────────────────
 
-@app.route("/api/admin/usage")
+@app.route("/dashboard")
+def dashboard():
+    return redirect("/admin/usage")
+
+
+@app.route("/admin/usage/data")
 def admin_usage():
     if not _admin_authorized():
         return jsonify({"error": "Unauthorized"}), 401

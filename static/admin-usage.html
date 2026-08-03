@@ -377,7 +377,7 @@ function filterSoleSource() {
 // ── Load ──────────────────────────────────────────────────────────
 async function load() {
   try {
-    const res = await fetch('/api/admin/usage');
+    const res = await fetch('/admin/usage/data');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const d = await res.json();
 
