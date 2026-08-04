@@ -670,7 +670,9 @@ Scoring guide:
         content = message.choices[0].message.content or ""
         result = _parse_ai_json(content)
 
-        result["log_id"] = usage_db.log_sole_source(f.filename, result, session.get("user_email", ""))
+        result["log_id"] = usage_db.log_sole_source(
+            f.filename, result, session.get("user_email", ""), file_bytes=pdf_bytes
+        )
         return jsonify(result)
 
     except json.JSONDecodeError as e:
@@ -862,6 +864,41 @@ def admin_usage():
         "analyses":     usage_db.recent_analyses(),
         "sole_source":  usage_db.recent_sole_source(),
     })
+
+
+@app.route("/admin/usage/archive", methods=["POST"])
+def admin_usage_archive():
+    if not _admin_authorized():
+        return jsonify({"error": "Unauthorized"}), 401
+    body = request.get_json(silent=True) or {}
+    kind = body.get("type")
+    log_id = body.get("id")
+    archived = bool(body.get("archived"))
+    if kind == "analysis":
+        usage_db.set_analysis_archived(log_id, archived)
+    elif kind == "sole_source":
+        usage_db.set_sole_source_archived(log_id, archived)
+    else:
+        return jsonify({"error": "Invalid type"}), 400
+    return jsonify({"ok": True})
+
+
+@app.route("/admin/usage/sole-source/<int:log_id>/file")
+def admin_usage_sole_source_file(log_id):
+    if not _admin_authorized():
+        return Response(
+            "Unauthorized", 401,
+            {"WWW-Authenticate": 'Basic realm="Procurement Admin"'}
+        )
+    found = usage_db.get_sole_source_file(log_id)
+    if not found:
+        return jsonify({"error": "No file stored for this record"}), 404
+    filename, file_bytes = found
+    return Response(
+        file_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
 
 
 @app.route("/admin/usage")

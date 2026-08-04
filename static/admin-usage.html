@@ -32,14 +32,50 @@ header h1{font-size:0.95rem;font-weight:700;letter-spacing:0.02em}
 .panel{display:none}.panel.active{display:block}
 
 /* Tables */
-.tbl-wrap{background:#fff;border:1px solid #dde3ec;border-radius:8px;overflow:hidden;margin-top:0}
-table{width:100%;border-collapse:collapse;font-size:0.83rem}
+.tbl-wrap{background:#fff;border:1px solid #dde3ec;border-radius:8px;overflow-x:auto;margin-top:0}
+table{border-collapse:collapse;font-size:0.83rem}
 th{background:#eef2f9;color:#1f3864;font-weight:700;font-size:0.72rem;text-transform:uppercase;
-   letter-spacing:0.04em;padding:9px 12px;text-align:left;border-bottom:2px solid #d0d9e8;white-space:nowrap}
-td{padding:8px 12px;border-bottom:1px solid #f0f2f6;vertical-align:middle;max-width:280px;
+   letter-spacing:0.04em;padding:9px 12px;text-align:left;border-bottom:2px solid #d0d9e8;white-space:nowrap;
+   position:relative;overflow:hidden}
+td{padding:8px 12px;border-bottom:1px solid #f0f2f6;vertical-align:middle;
    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#fafbfd}
+.data-row{cursor:pointer}
+.col-resizer{position:absolute;top:0;right:0;width:6px;height:100%;cursor:col-resize;user-select:none;
+  touch-action:none}
+.col-resizer:hover,.col-resizer.resizing{background:rgba(31,56,100,0.25)}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:0.8rem;color:#555;
+  border-top:1px solid #eef0f4}
+.pagination button{padding:5px 12px;border:1px solid #d0d9e8;border-radius:6px;background:#fff;
+  cursor:pointer;font-size:0.8rem;color:#333}
+.pagination button:hover:not(:disabled){background:#f0f4fa;border-color:#1f3864}
+.pagination button:disabled{opacity:0.4;cursor:default}
+.pagination .pg-info{margin-left:auto}
+
+/* Report modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,26,40,0.55);z-index:200;
+  align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:10px;max-width:640px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.25)}
+.modal-header{display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid #e0e8f0}
+.modal-header h2{font-size:1rem;color:#1f3864;flex:1}
+.modal-close{background:none;border:none;font-size:1.3rem;color:#888;cursor:pointer;line-height:1;padding:2px 6px}
+.modal-close:hover{color:#1f3864}
+.modal-body{padding:20px 22px 26px;font-size:0.85rem;color:#333}
+.modal-body h3{font-size:0.82rem;color:#1f3864;margin:16px 0 8px;text-transform:uppercase;letter-spacing:0.03em}
+.modal-body h3:first-child{margin-top:0}
+.modal-row{margin-bottom:5px}
+.modal-row strong{color:#1f3864}
+.report-box{border:1px solid #d0dae8;border-radius:6px;padding:10px 12px;margin-bottom:8px;font-size:0.82rem}
+.btn-archive{padding:3px 10px;border:1px solid #d0d9e8;border-radius:6px;background:#fff;cursor:pointer;
+  font-size:0.75rem;color:#555;white-space:nowrap}
+.btn-archive:hover{background:#f0f4fa;border-color:#1f3864}
+.archived-toggle{display:flex;align-items:center;gap:5px;font-size:0.8rem;color:#555;white-space:nowrap}
+.archived-toggle input{cursor:pointer}
+tr.is-archived td{opacity:0.5}
 
 /* Verdict badges */
 .v-badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:0.73rem;font-weight:700;white-space:nowrap}
@@ -143,10 +179,11 @@ tr:hover td{background:#fafbfd}
         <option value="travel">Travel</option>
         <option value="other">Other</option>
       </select>
+      <label class="archived-toggle"><input type="checkbox" id="analysis-show-archived" onchange="filterAnalyses()"> Show archived</label>
       <span class="row-count" id="analysis-count"></span>
     </div>
     <div class="tbl-wrap">
-      <table>
+      <table id="analyses-table">
         <thead><tr>
           <th>Date</th>
           <th>Department</th>
@@ -160,9 +197,11 @@ tr:hover td{background:#fafbfd}
           <th>Approver</th>
           <th>Flags</th>
           <th>Emailed</th>
+          <th>Archive</th>
         </tr></thead>
-        <tbody id="analyses-tbody"><tr><td colspan="12" class="empty">Loading…</td></tr></tbody>
+        <tbody id="analyses-tbody"><tr><td colspan="13" class="empty">Loading…</td></tr></tbody>
       </table>
+      <div class="pagination" id="analyses-pagination"></div>
     </div>
   </div>
 
@@ -176,10 +215,11 @@ tr:hover td{background:#fafbfd}
         <option>adequate</option>
         <option>weak</option>
       </select>
+      <label class="archived-toggle"><input type="checkbox" id="ss-show-archived" onchange="filterSoleSource()"> Show archived</label>
       <span class="row-count" id="ss-count"></span>
     </div>
     <div class="tbl-wrap">
-      <table>
+      <table id="ss-table">
         <thead><tr>
           <th>Date</th>
           <th>Filename</th>
@@ -187,18 +227,38 @@ tr:hover td{background:#fafbfd}
           <th>Ready</th>
           <th>Recommendation</th>
           <th>Emailed</th>
+          <th>Archive</th>
         </tr></thead>
-        <tbody id="ss-tbody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        <tbody id="ss-tbody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
+      <div class="pagination" id="ss-pagination"></div>
     </div>
   </div>
 
 </div>
 
+<!-- Report modal -->
+<div class="modal-overlay" id="report-modal" onclick="if(event.target===this) closeReportModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modal-title">Report</h2>
+      <button class="btn-archive" id="modal-archive-btn" onclick="toggleArchiveFromModal()"></button>
+      <button class="modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
 <script>
+const PAGE_SIZE = 25;
 let _analyses   = [];
 let _soleSource = [];
-let _maxAnalyses = 1;
+let _analysesFiltered = [];
+let _ssFiltered = [];
+let analysisPage = 1;
+let ssPage = 1;
+let _modalType = null;
+let _modalId = null;
 
 // ── Tabs ──────────────────────────────────────────────────────────
 function switchTab(btn, id) {
@@ -303,12 +363,11 @@ function renderMonthly(rows) {
 // ── Analysis log ──────────────────────────────────────────────────
 function renderAnalyses(rows) {
   const tbody = document.getElementById('analyses-tbody');
-  document.getElementById('analysis-count').textContent = rows.length + ' rows';
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="12" class="empty">No analyses recorded yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" class="empty">No analyses recorded yet</td></tr>';
     return;
   }
-  tbody.innerHTML = rows.map(r => `<tr>
+  tbody.innerHTML = rows.map(r => `<tr class="data-row${r.archived ? ' is-archived' : ''}" onclick="openAnalysisReport(${r.id})">
     <td style="white-space:nowrap;font-size:0.78rem;color:#666">${fmtDate(r.created_at)}</td>
     <td>${r.department || '–'}</td>
     <td title="${r.item_name || ''}">${r.item_name || '–'}</td>
@@ -317,18 +376,37 @@ function renderAnalyses(rows) {
     <td style="white-space:nowrap">${r.process_timing === 'expedited' ? 'Expedited' : 'Normal'}</td>
     <td style="white-space:nowrap">${r.required_date || '–'}</td>
     <td>${verdictBadge(r.verdict)}</td>
-    <td title="${r.procurement_method||''}" style="max-width:160px">${r.procurement_method || '–'}</td>
+    <td title="${r.procurement_method||''}">${r.procurement_method || '–'}</td>
     <td style="white-space:nowrap">${fmtRole(r.approval_role)}</td>
     <td style="white-space:nowrap">${flagIcons(r)}</td>
     <td>${emailCell(r.report_emailed, r.report_emailed_to)}</td>
+    <td><button class="btn-archive" onclick="event.stopPropagation();toggleArchive('analysis',${r.id},${r.archived ? 'false' : 'true'})">${r.archived ? 'Unarchive' : 'Archive'}</button></td>
   </tr>`).join('');
 }
 
-function filterAnalyses() {
+function renderAnalysesPage() {
+  const total = _analysesFiltered.length;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (analysisPage > pages) analysisPage = pages;
+  if (analysisPage < 1) analysisPage = 1;
+  const start = (analysisPage - 1) * PAGE_SIZE;
+  renderAnalyses(_analysesFiltered.slice(start, start + PAGE_SIZE));
+  document.getElementById('analysis-count').textContent = total + ' rows';
+  renderPaginationBar('analyses-pagination', total, analysisPage, 'goAnalysisPage');
+}
+
+function goAnalysisPage(p) {
+  analysisPage = p;
+  renderAnalysesPage();
+}
+
+function filterAnalyses(resetPage = true) {
   const q      = document.getElementById('analysis-search').value.trim().toLowerCase();
   const vf     = document.getElementById('analysis-verdict').value;
   const tf     = document.getElementById('analysis-type').value;
-  const filtered = _analyses.filter(r => {
+  const showArchived = document.getElementById('analysis-show-archived').checked;
+  _analysesFiltered = _analyses.filter(r => {
+    if (!showArchived && r.archived) return false;
     if (vf && r.verdict    !== vf) return false;
     if (tf && r.item_type  !== tf) return false;
     if (q) {
@@ -338,33 +416,52 @@ function filterAnalyses() {
     }
     return true;
   });
-  renderAnalyses(filtered);
+  if (resetPage) analysisPage = 1;
+  renderAnalysesPage();
 }
 
 // ── Sole source log ───────────────────────────────────────────────
 function renderSoleSource(rows) {
   const tbody = document.getElementById('ss-tbody');
-  document.getElementById('ss-count').textContent = rows.length + ' rows';
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">No sole source reviews recorded yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No sole source reviews recorded yet</td></tr>';
     return;
   }
-  tbody.innerHTML = rows.map(r => `<tr>
+  tbody.innerHTML = rows.map(r => `<tr class="data-row${r.archived ? ' is-archived' : ''}" onclick="openSoleSourceReport(${r.id})">
     <td style="white-space:nowrap;font-size:0.78rem;color:#666">${fmtDate(r.created_at)}</td>
     <td title="${r.filename||''}">${r.filename || '–'}</td>
     <td>${strengthBadge(r.strength)}</td>
     <td style="text-align:center">${r.ready_to_submit
       ? '<span style="color:#1a7a4a;font-weight:700">✓ Yes</span>'
       : '<span style="color:#b91c1c">✗ No</span>'}</td>
-    <td title="${r.recommendation||''}" style="max-width:320px;font-size:0.8rem;color:#555">${r.recommendation || '–'}</td>
+    <td title="${r.recommendation||''}" style="font-size:0.8rem;color:#555">${r.recommendation || '–'}</td>
     <td>${emailCell(r.report_emailed, r.report_emailed_to)}</td>
+    <td><button class="btn-archive" onclick="event.stopPropagation();toggleArchive('sole_source',${r.id},${r.archived ? 'false' : 'true'})">${r.archived ? 'Unarchive' : 'Archive'}</button></td>
   </tr>`).join('');
 }
 
-function filterSoleSource() {
+function renderSsPage() {
+  const total = _ssFiltered.length;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (ssPage > pages) ssPage = pages;
+  if (ssPage < 1) ssPage = 1;
+  const start = (ssPage - 1) * PAGE_SIZE;
+  renderSoleSource(_ssFiltered.slice(start, start + PAGE_SIZE));
+  document.getElementById('ss-count').textContent = total + ' rows';
+  renderPaginationBar('ss-pagination', total, ssPage, 'goSsPage');
+}
+
+function goSsPage(p) {
+  ssPage = p;
+  renderSsPage();
+}
+
+function filterSoleSource(resetPage = true) {
   const q  = document.getElementById('ss-search').value.trim().toLowerCase();
   const sf = document.getElementById('ss-strength').value;
-  const filtered = _soleSource.filter(r => {
+  const showArchived = document.getElementById('ss-show-archived').checked;
+  _ssFiltered = _soleSource.filter(r => {
+    if (!showArchived && r.archived) return false;
     if (sf && (r.strength || '').toLowerCase() !== sf) return false;
     if (q) {
       const hay = [r.filename, r.recommendation, r.report_emailed_to].join(' ').toLowerCase();
@@ -372,7 +469,166 @@ function filterSoleSource() {
     }
     return true;
   });
-  renderSoleSource(filtered);
+  if (resetPage) ssPage = 1;
+  renderSsPage();
+}
+
+// ── Pagination bar ────────────────────────────────────────────────
+function renderPaginationBar(containerId, total, page, goFnName) {
+  const el = document.getElementById(containerId);
+  if (!total) { el.innerHTML = ''; return; }
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const start = (page - 1) * PAGE_SIZE + 1;
+  const end   = Math.min(page * PAGE_SIZE, total);
+  el.innerHTML = `
+    <button ${page <= 1 ? 'disabled' : ''} onclick="${goFnName}(${page - 1})">Prev</button>
+    <button ${page >= pages ? 'disabled' : ''} onclick="${goFnName}(${page + 1})">Next</button>
+    <span class="pg-info">${start}–${end} of ${total}</span>
+  `;
+}
+
+// ── Column resize ─────────────────────────────────────────────────
+function initColumnResize(table) {
+  table.querySelectorAll('thead th').forEach(th => {
+    const handle = document.createElement('div');
+    handle.className = 'col-resizer';
+    th.appendChild(handle);
+    handle.addEventListener('mousedown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      table.querySelectorAll('thead th').forEach(h => { h.style.width = h.offsetWidth + 'px'; });
+      table.style.tableLayout = 'fixed';
+      const startX = e.pageX;
+      const startWidth = th.offsetWidth;
+      handle.classList.add('resizing');
+      const onMove = ev => {
+        th.style.width = Math.max(40, startWidth + (ev.pageX - startX)) + 'px';
+      };
+      const onUp = () => {
+        handle.classList.remove('resizing');
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
+}
+
+// ── Report modal ──────────────────────────────────────────────────
+function safeParseReport(r) {
+  if (!r.report_json) return null;
+  try { return JSON.parse(r.report_json); } catch (e) { return null; }
+}
+
+function buildAnalysisReportHTML(r) {
+  const parsed = safeParseReport(r);
+  if (!parsed) return '<p style="color:#999">No stored report available for this record.</p>';
+  const data   = parsed.data   || {};
+  const result = parsed.result || {};
+  const chain  = result.approval_chain || [];
+  const pt     = result.processing_time;
+
+  let html = '<h3>Request</h3>';
+  html += `<div class="modal-row"><strong>Requester:</strong> ${data.requester_name || '–'} (${data.requester_email || '–'})</div>`;
+  html += `<div class="modal-row"><strong>Department:</strong> ${data.department || '–'}</div>`;
+  html += `<div class="modal-row"><strong>Item:</strong> ${data.item_name || '–'}</div>`;
+  html += `<div class="modal-row"><strong>Type:</strong> ${fmtType(data.item_type)}</div>`;
+  html += `<div class="modal-row"><strong>Amount:</strong> ${fmtAmount(data.amount)}</div>`;
+  if (data.description)  html += `<div class="modal-row"><strong>Description:</strong> ${data.description}</div>`;
+  if (data.account_code) html += `<div class="modal-row"><strong>Account Code:</strong> ${data.account_code}</div>`;
+
+  html += '<h3>Outcome</h3>';
+  html += `<div class="modal-row"><strong>Verdict:</strong> ${verdictBadge(result.verdict)}</div>`;
+  html += `<div class="modal-row"><strong>Procurement Method:</strong> ${result.procurement_method || '–'}</div>`;
+
+  if (chain.length) {
+    html += '<h3>Approval Chain</h3>';
+    html += chain.map(s => `<div class="modal-row">${fmtRole(s.role)}${s.approves ? ' <strong>(approves)</strong>' : ''}</div>`).join('');
+  }
+
+  if (pt) {
+    html += '<h3>Estimated Processing Time</h3>';
+    if (pt.warning) html += `<div class="report-box" style="background:#fff4e5;border-color:#f0c674;color:#8a5a00">⚠️ ${pt.warning}</div>`;
+    html += `<div class="report-box">${pt.disclaimer || ''}</div>`;
+    if (pt.caveat) html += `<div style="font-size:0.78rem;color:#888">${pt.caveat}</div>`;
+  }
+
+  return html;
+}
+
+function buildSoleSourceReportHTML(r) {
+  const parsed = safeParseReport(r);
+  if (!parsed) return '<p style="color:#999">No stored report available for this record.</p>';
+  const result = parsed.result || {};
+
+  let html = '<h3>File</h3>';
+  html += `<div class="modal-row"><strong>Filename:</strong> ${parsed.filename || r.filename || '–'}</div>`;
+  html += r.has_file
+    ? `<div class="modal-row"><a href="/admin/usage/sole-source/${r.id}/file" target="_blank" rel="noopener">View letter (PDF)</a></div>`
+    : `<div class="modal-row" style="color:#999">Letter not stored for this record</div>`;
+  html += '<h3>Outcome</h3>';
+  html += `<div class="modal-row"><strong>Strength:</strong> ${strengthBadge(result.strength)}</div>`;
+  html += `<div class="modal-row"><strong>Ready to Submit:</strong> ${result.ready_to_submit ? 'Yes' : 'No'}</div>`;
+  if (result.recommendation) html += `<div class="report-box">${result.recommendation}</div>`;
+  return html;
+}
+
+function openAnalysisReport(id) {
+  const r = _analyses.find(x => x.id === id);
+  if (!r) return;
+  _modalType = 'analysis';
+  _modalId = id;
+  document.getElementById('modal-title').textContent = 'Analysis Report — ' + (r.item_name || 'Untitled');
+  document.getElementById('modal-archive-btn').textContent = r.archived ? 'Unarchive' : 'Archive';
+  document.getElementById('modal-body').innerHTML = buildAnalysisReportHTML(r);
+  document.getElementById('report-modal').classList.add('open');
+}
+
+function openSoleSourceReport(id) {
+  const r = _soleSource.find(x => x.id === id);
+  if (!r) return;
+  _modalType = 'sole_source';
+  _modalId = id;
+  document.getElementById('modal-title').textContent = 'Sole Source Report — ' + (r.filename || 'Untitled');
+  document.getElementById('modal-archive-btn').textContent = r.archived ? 'Unarchive' : 'Archive';
+  document.getElementById('modal-body').innerHTML = buildSoleSourceReportHTML(r);
+  document.getElementById('report-modal').classList.add('open');
+}
+
+function closeReportModal() {
+  document.getElementById('report-modal').classList.remove('open');
+  _modalType = null;
+  _modalId = null;
+}
+
+// ── Archive / unarchive ───────────────────────────────────────────
+async function toggleArchive(type, id, archived) {
+  try {
+    const res = await fetch('/admin/usage/archive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, id, archived })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+  } catch (e) {
+    alert('Failed to update archive status: ' + e.message);
+    return;
+  }
+  const arr = type === 'analysis' ? _analyses : _soleSource;
+  const row = arr.find(r => r.id === id);
+  if (row) row.archived = archived ? 1 : 0;
+  if (type === 'analysis') filterAnalyses(false); else filterSoleSource(false);
+  if (_modalType === type && _modalId === id) {
+    document.getElementById('modal-archive-btn').textContent = archived ? 'Unarchive' : 'Archive';
+  }
+}
+
+function toggleArchiveFromModal() {
+  if (!_modalType || _modalId == null) return;
+  const arr = _modalType === 'analysis' ? _analyses : _soleSource;
+  const row = arr.find(r => r.id === _modalId);
+  toggleArchive(_modalType, _modalId, !(row && row.archived));
 }
 
 // ── Load ──────────────────────────────────────────────────────────
@@ -390,8 +646,8 @@ async function load() {
 
     _analyses   = d.analyses   || [];
     _soleSource = d.sole_source || [];
-    renderAnalyses(_analyses);
-    renderSoleSource(_soleSource);
+    filterAnalyses();
+    filterSoleSource();
   } catch(e) {
     document.querySelectorAll('tbody').forEach(t =>
       t.innerHTML = `<tr><td colspan="10" class="empty" style="color:#b91c1c">Failed to load: ${e.message}</td></tr>`
@@ -399,6 +655,8 @@ async function load() {
   }
 }
 
+initColumnResize(document.getElementById('analyses-table'));
+initColumnResize(document.getElementById('ss-table'));
 load();
 </script>
 </body>
