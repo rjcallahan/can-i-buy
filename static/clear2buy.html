@@ -39,9 +39,7 @@
   <body>
     <header>
       <div class="brand">CAPA <span>Consulting</span></div>
-      <div class="agency" style="display: none">
-        City of Palm Springs — Procurement Advisor
-      </div>
+      <div class="agency" id="agency-line"></div>
       <div class="nav">
         <a href="/dashboard" id="dashboard-link" style="display:none;font-size:13px;color:#cdd8e8;text-decoration:none;opacity:0.8;margin-right:16px">Dashboard</a>
         <a href="/logout" style="font-size:13px;color:#cdd8e8;text-decoration:none;opacity:0.8">Sign out</a>
@@ -530,6 +528,18 @@
         } catch (e) {
           console.warn("Departments API unavailable, using fallback:", e);
           populateDepartments(FALLBACK_DEPARTMENTS);
+        }
+      })();
+
+      // ── Load city name for header ────────────────────────────────
+      (async function loadCityName() {
+        try {
+          const res = await fetch("/api/config/city-name");
+          const data = await res.json();
+          document.getElementById("agency-line").textContent =
+            (data.city_name || "Procurement") + " — Procurement Advisor";
+        } catch (e) {
+          console.warn("City name API unavailable:", e);
         }
       })();
 

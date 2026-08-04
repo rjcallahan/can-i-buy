@@ -97,7 +97,7 @@ def _is_admin(email: str) -> bool:
 @app.before_request
 def require_login():
     path = request.path
-    if path in ('/login', '/health', '/dashboard') or path.startswith(('/auth/', '/static/', '/admin', '/api/admin')):
+    if path in ('/login', '/health', '/dashboard', '/api/config/city-name') or path.startswith(('/auth/', '/static/', '/admin', '/api/admin')):
         return
     if session.get('user_email'):
         return
@@ -792,6 +792,11 @@ def get_departments():
     return jsonify({"departments": cfg._get("departments")})
 
 
+@app.route("/api/config/city-name")
+def get_city_name():
+    return jsonify({"city_name": cfg.city_name()})
+
+
 @app.route("/api/config/mail-domain")
 def get_mail_domain():
     return jsonify({
@@ -858,8 +863,10 @@ def dashboard():
 def admin_usage():
     if not _admin_authorized():
         return jsonify({"error": "Unauthorized"}), 401
+    totals = usage_db.totals()
+    totals["city_name"] = cfg.city_name()
     return jsonify({
-        "totals":       usage_db.totals(),
+        "totals":       totals,
         "summary":      usage_db.monthly_summary(),
         "analyses":     usage_db.recent_analyses(),
         "sole_source":  usage_db.recent_sole_source(),
