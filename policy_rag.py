@@ -15,7 +15,7 @@ import os
 _TENANT      = os.getenv("TENANT", "palm-springs")
 _BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 _TENANT_DIR  = os.path.join(_BASE_DIR, "tenants", _TENANT)
-_DATA_DIR    = os.getenv("DATA_DIR", os.path.join(_BASE_DIR, "data"))
+_DATA_DIR    = os.getenv("DATA_DIR", os.path.join(_BASE_DIR, "data", _TENANT))
 _CHROMA_PATH = os.path.join(_DATA_DIR, "chroma_db")
 _REPO_CHROMA = os.path.join(_TENANT_DIR, "chroma_db")
 

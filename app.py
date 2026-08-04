@@ -3,6 +3,15 @@ import datetime
 import json
 import os
 import re
+import sys
+
+# Optional CLI arg: `python app.py <tenant>` selects the tenant for this run,
+# overriding any TENANT already set in the shell. Must run before the
+# tenant-aware imports below (usage_db, procurement_config) so they pick it up.
+# Gated on __main__ so gunicorn's own argv (e.g. "app:app") is never mistaken
+# for a tenant name in production.
+if __name__ == "__main__" and len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+    os.environ["TENANT"] = sys.argv[1]
 
 from dotenv import load_dotenv
 from flask import (

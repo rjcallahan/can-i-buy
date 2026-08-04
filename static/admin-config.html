@@ -86,6 +86,7 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
     <button class="tab-btn" onclick="switchTab(this,'signing')">Signing Authority</button>
     <button class="tab-btn" onclick="switchTab(this,'pcard')">P-Card</button>
     <button class="tab-btn" onclick="switchTab(this,'methods')">Proc. Methods</button>
+    <button class="tab-btn" onclick="switchTab(this,'timing')">Processing Time</button>
     <button class="tab-btn" onclick="switchTab(this,'mail')">Mail</button>
     <button class="tab-btn" onclick="switchTab(this,'departments')">Departments</button>
     <button class="tab-btn" onclick="switchTab(this,'ai')">AI Model</button>
@@ -157,6 +158,32 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
       <div id="method-panels"></div>
     </div>
 
+    <!-- PROCESSING TIME -->
+    <div class="panel" id="panel-timing">
+      <div class="section-title">Processing Time</div>
+      <p class="hint">Estimated business days to process each procurement class. Shown to requesters so they know what to expect.</p>
+
+      <div class="field-label" style="margin-top:4px">General Purchases</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Class</th><th>Normal Min</th><th>Normal Max</th><th>Expedited Min</th><th>Expedited Max</th></tr></thead>
+          <tbody id="pt-general-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="field-label" style="margin-top:18px">Construction (UPCCAA)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Class</th><th>Normal Min</th><th>Normal Max</th><th>Expedited Min</th><th>Expedited Max</th></tr></thead>
+          <tbody id="pt-construction-tbody"></tbody>
+        </table>
+      </div>
+      <div class="field">
+        <label>AB339 Caveat (Force Account / Negotiated tier)</label>
+        <textarea id="pt-construction-under_75k-caveat"></textarea>
+      </div>
+    </div>
+
     <!-- MAIL -->
     <div class="panel" id="panel-mail">
       <div class="section-title">Mail Settings</div>
@@ -221,6 +248,8 @@ const ITEM_LABELS = {
   professional_services:'Professional Services', construction:'Construction',
   travel:'Travel', other:'Other'
 };
+const PT_GENERAL = ['single_quote','pcard_standard','pcard_limit_increase','informal_3_quotes','formal_bid_acm_cm','formal_bid_council'];
+const PT_CONSTRUCTION = ['under_75k','informal_bid','formal_bid'];
 let rawConfig = {};
 
 // ── Tabs ──────────────────────────────────────────────────────
@@ -368,6 +397,56 @@ function collectProcurementMethods() {
   return result;
 }
 
+// ── Processing time ────────────────────────────────────────────
+function ptRow(group, key, entry) {
+  entry = entry || {};
+  const n = entry.normal_days || [0, 0];
+  const e = entry.expedited_days || [0, 0];
+  return `<tr>
+    <td>
+      <input type="hidden" id="pt-${group}-${key}-label" value="${esc(entry.label)}">
+      ${esc(entry.label) || key}
+    </td>
+    <td><input type="number" id="pt-${group}-${key}-nmin" value="${n[0] ?? 0}" style="width:80px"></td>
+    <td><input type="number" id="pt-${group}-${key}-nmax" value="${n[1] ?? 0}" style="width:80px"></td>
+    <td><input type="number" id="pt-${group}-${key}-emin" value="${e[0] ?? 0}" style="width:80px"></td>
+    <td><input type="number" id="pt-${group}-${key}-emax" value="${e[1] ?? 0}" style="width:80px"></td>
+  </tr>`;
+}
+
+function renderProcessingTime(pt) {
+  const general = pt.general || {};
+  const construction = pt.construction || {};
+  document.getElementById('pt-general-tbody').innerHTML =
+    PT_GENERAL.map(k => ptRow('general', k, general[k])).join('');
+  document.getElementById('pt-construction-tbody').innerHTML =
+    PT_CONSTRUCTION.map(k => ptRow('construction', k, construction[k])).join('');
+  document.getElementById('pt-construction-under_75k-caveat').value =
+    construction.under_75k?.caveat || '';
+}
+
+function collectProcessingTimeGroup(group, keys) {
+  const result = {};
+  keys.forEach(k => {
+    const entry = {
+      label:          document.getElementById(`pt-${group}-${k}-label`)?.value || '',
+      normal_days:    [parseInt(document.getElementById(`pt-${group}-${k}-nmin`)?.value) || 0,
+                        parseInt(document.getElementById(`pt-${group}-${k}-nmax`)?.value) || 0],
+      expedited_days: [parseInt(document.getElementById(`pt-${group}-${k}-emin`)?.value) || 0,
+                        parseInt(document.getElementById(`pt-${group}-${k}-emax`)?.value) || 0],
+    };
+    result[k] = entry;
+  });
+  return result;
+}
+
+function collectProcessingTime() {
+  const general = collectProcessingTimeGroup('general', PT_GENERAL);
+  const construction = collectProcessingTimeGroup('construction', PT_CONSTRUCTION);
+  construction.under_75k.caveat = document.getElementById('pt-construction-under_75k-caveat')?.value || '';
+  return { general, construction };
+}
+
 // ── Populate all ──────────────────────────────────────────────
 function populateAll(c) {
   document.getElementById('hdr-city').textContent = c.city?.name || 'Config';
@@ -388,6 +467,8 @@ function populateAll(c) {
   renderPcardProhibited(c.pcard?.prohibited_item_types || []);
   // Procurement methods
   renderProcurementMethods(c.procurement_methods || {});
+  // Processing time
+  renderProcessingTime(c.processing_time || {});
   // Mail
   setVal('mail-host',      c.mail?.smtp_host);
   setVal('mail-port',      c.mail?.smtp_port);
@@ -423,6 +504,7 @@ function collectConfig() {
     prohibited_item_types:    collectPcardProhibited(),
   };
   c.procurement_methods = { ...c.procurement_methods, ...collectProcurementMethods() };
+  c.processing_time = { ...c.processing_time, ...collectProcessingTime() };
   c.mail = { ...c.mail,
     smtp_host:        document.getElementById('mail-host').value,
     smtp_port:        parseInt(document.getElementById('mail-port').value) || 587,

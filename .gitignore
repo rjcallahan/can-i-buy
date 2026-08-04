@@ -15,9 +15,9 @@ procurement.db
 procurement.db-shm
 procurement.db-wal
 
-# Local runtime cache — bootstrapped from tenants/<TENANT>/ on first run
-data/procurement_config.json
-data/chroma_db/
+# Local runtime cache — bootstrapped per tenant from tenants/<TENANT>/ on first run
+data/*/procurement_config.json
+data/*/chroma_db/
 
 
 # Uploads (user files — live on Railway volume in production)

@@ -8,8 +8,8 @@ reviewed without any external service.
 
 Database location
 ─────────────────
-  Production (Railway volume):  /data/procurement.db
-  Local dev:                    data/procurement.db
+  Production (Railway volume):  /data/procurement.db (one volume per tenant service)
+  Local dev:                    data/<TENANT>/procurement.db
   Override:                     DATA_DIR environment variable
 
 Tables
@@ -27,9 +27,10 @@ import os
 import sqlite3
 from contextlib import contextmanager
 
+_TENANT = os.getenv("TENANT", "palm-springs")
 _DATA_DIR = (
     os.getenv("DATA_DIR")
-    or os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+    or os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", _TENANT)
 )
 _DB_PATH = os.path.join(_DATA_DIR, "procurement.db")
 

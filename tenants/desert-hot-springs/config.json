@@ -1,5 +1,5 @@
 {
-  "_comment": "City of Palm Springs — Procurement Helper Configuration",
+  "_comment": "City of Desert Hot Springs — Procurement Helper Configuration",
   "_last_updated": "2026-07-03",
   "_note": "All dollar amounts are in USD. Edit this file to update thresholds city-wide.",
   "ai": {
@@ -20,11 +20,11 @@
   },
   "city": {
     "_comment": "City-specific defaults used in document generation",
-    "city_clerk_name": "Anthony Mejia",
-    "city_state_zip": "Palm Springs, CA 92262",
-    "name": "City of Palm Springs",
-    "procurement_email": "procurement@palmspringsca.gov",
-    "procurement_phone": "(760) 323-8264",
+    "city_clerk_name": "Jerryl Soriano",
+    "city_state_zip": "Desert Hot Springs, CA 92262",
+    "name": "City of Desert Hot Springs",
+    "procurement_email": "procurement@cityofdhs.org",
+    "procurement_phone": "(760) 329-6411",
     "state": "CA",
     "warehouse_address": "Contact Procurement for warehouse address"
   },
@@ -57,7 +57,7 @@
       "kimbaker0206@gmail.com",
       "rjcallahan@fastmail.com"
     ],
-    "allowed_domain": "@palmspringsca.gov",
+    "allowed_domain": "@cityofdhs.org",
     "smtp_from": "",
     "smtp_from_name": "Procurement",
     "smtp_host": "smtp.zoho.com",
@@ -260,7 +260,7 @@
     ]
   },
   "processing_time": {
-    "_comment": "Estimated days to process each procurement class, shown to requesters and (future) factored into the AI report",
+    "_comment": "Placeholder copy of Palm Springs' estimates — review and adjust for Desert Hot Springs",
     "general": {
       "single_quote":         {"label": "Single Quote — sub-director/director sign-off", "normal_days": [2, 3],  "expedited_days": [1, 2]},
       "pcard_standard":       {"label": "P-Card, within transaction limit",               "normal_days": [0, 0],  "expedited_days": [0, 0]},
