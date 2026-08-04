@@ -785,6 +785,24 @@
 
         const approvalHTML = buildApprovalHTML(r.approval_chain);
 
+        const processingTimeHTML = (() => {
+          if (!r.processing_time) return "";
+          const pt = r.processing_time;
+          return (
+            '<div class="result-section" style="margin-top:16px">' +
+            '<h3>⏱ Estimated Processing Time</h3>' +
+            '<div style="border:1px solid #d0dae8;border-radius:6px;padding:12px 14px">' +
+            (pt.warning
+              ? `<div style="background:#fff4e5;border:1px solid #f0c674;border-radius:6px;padding:10px 12px;font-size:13px;color:#8a5a00;margin-bottom:10px">⚠️ ${pt.warning}</div>`
+              : "") +
+            `<div style="font-size:13px;color:#333;line-height:1.6">${pt.disclaimer}</div>` +
+            (pt.caveat
+              ? `<div style="font-size:12px;color:#888;margin-top:8px">${pt.caveat}</div>`
+              : "") +
+            "</div></div>"
+          );
+        })();
+
         const faaHTML = (() => {
           if (!r.faa_notes) return "";
           return (
@@ -814,7 +832,7 @@
                 }
               </div>
               <p class="result-summary">${r.summary || ""}</p>
-              ${methodHTML}${faaHTML}${approvalHTML}${missingHTML}${flagsHTML}${docsHTML}${nextHTML}
+              ${methodHTML}${faaHTML}${approvalHTML}${processingTimeHTML}${missingHTML}${flagsHTML}${docsHTML}${nextHTML}
               ${
                 SHOW_FORMAL_REQUEST
                   ? `

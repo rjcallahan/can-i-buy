@@ -143,6 +143,91 @@ def compute_approval_chain(amount: float, item_type: str) -> list:
     ]
 
 
+# ── Processing time estimate ───────────────────────────────────
+
+def compute_processing_time(data: dict, result: dict) -> dict | None:
+    """
+    Classify this request into one of the tenant's configured processing_time
+    classes and return the day-range estimate. Returns None if the tenant
+    hasn't set up processing_time config yet.
+    """
+    try:
+        pt = cfg.raw("processing_time")
+    except KeyError:
+        return None
+
+    item_type = data.get("item_type", "other")
+    amount    = float(data.get("amount") or 0)
+    speed_key = "expedited_days" if data.get("process_timing") == "expedited" else "normal_days"
+
+    if item_type == "construction":
+        group = "construction"
+        if amount <= 74999.99:
+            class_key = "under_75k"
+        elif amount <= 219999.99:
+            class_key = "informal_bid"
+        else:
+            class_key = "formal_bid"
+    else:
+        group = "general"
+        if result.get("pcard_eligible"):
+            class_key = (
+                "pcard_standard" if amount <= cfg.pcard_transaction_limit()
+                else "pcard_limit_increase"
+            )
+        elif cfg.requires_competitive_bid(item_type, amount):
+            chain  = result.get("approval_chain") or []
+            signer = next((s for s in chain if s.get("approves")), None)
+            role   = signer["role"] if signer else ""
+            class_key = "formal_bid_council" if role == "city_council" else "formal_bid_acm_cm"
+        else:
+            tiers = cfg.procurement_methods(item_type)
+            idx   = next((i for i, t in enumerate(tiers) if amount <= t["max"]), 0)
+            class_key = "informal_3_quotes" if idx >= 1 else "single_quote"
+
+    entry = (pt.get(group) or {}).get(class_key)
+    if not entry:
+        return None
+
+    low, high  = (entry.get(speed_key) or [0, 0])[:2]
+    days_label = str(low) if low == high else f"{low}-{high}"
+    unit       = "day" if low == high == 1 else "days"
+
+    disclaimer = (
+        f"If your supporting documentation is ready and complete, submitting this "
+        f"requisition should take about {days_label} {unit} to process. Procurement "
+        f"times vary and depend on complete, accurate submissions, the complexity "
+        f"of the request, the availability of required signers, current workloads, "
+        f"and other factors. This is only an estimate, to help you plan your "
+        f"purchase and receive it on time."
+    )
+
+    warning = ""
+    required_date = data.get("required_date")
+    if data.get("process_timing") == "expedited" and required_date:
+        try:
+            days_until = (datetime.date.fromisoformat(required_date) - datetime.date.today()).days
+        except ValueError:
+            days_until = None
+        if days_until is not None and days_until < low:
+            warning = (
+                f"Your required-by date is {days_until} day{'s' if days_until != 1 else ''} away, "
+                f"but even on the fastest expedited track this class of purchase takes about "
+                f"{days_label} {unit}. Please plan for a later date or contact Procurement to "
+                f"discuss options."
+            )
+
+    return {
+        "class_key":  class_key,
+        "label":      entry.get("label", ""),
+        "days_min":   low,
+        "days_max":   high,
+        "disclaimer": disclaimer,
+        "caveat":     entry.get("caveat", ""),
+        "warning":    warning,
+    }
+
+
 # ── Response sanitization ─────────────────────────────────────
 
 _PCARD_PATTERN = re.compile(r'\s*/\s*P-?[Cc]ard|P-?[Cc]ard\s*/\s*', re.IGNORECASE)
@@ -295,6 +380,7 @@ def _run_analysis(data: dict) -> dict:
             f"P-Card is not permitted for purchases over ${pcard_cap:,.0f}. "
             "A formal requisition is required."
         )
+    result["processing_time"] = compute_processing_time(data, result)
     result["log_id"] = usage_db.log_analysis(data, result)
     return result
 
@@ -357,6 +443,7 @@ def analyze():
                     f"P-Card is not permitted for purchases over ${pcard_cap:,.0f}. "
                     "A formal requisition is required."
                 )
+            result["processing_time"] = compute_processing_time(data, result)
             result["log_id"] = usage_db.log_analysis(data, result)
             yield _sse({"type": "result", "data": result})
         except json.JSONDecodeError as e:
@@ -428,6 +515,14 @@ def send_clear2buy_report():
         f"<table style='border-collapse:collapse;width:100%'>{chain_rows}</table>"
     ) if chain_rows else ""
 
+    proc_time = result.get("processing_time")
+    proc_time_html = (
+        f"<h3 style='color:#1f3864'>⏱ Estimated Processing Time</h3>"
+        + (f"<p style='background:#fff4e5;border:1px solid #f0c674;border-radius:6px;padding:8px 10px;font-size:13px;color:#8a5a00'>⚠️ {proc_time['warning']}</p>" if proc_time.get("warning") else "")
+        + f"<p style='font-size:13px;color:#333'>{proc_time['disclaimer']}</p>"
+        + (f"<p style='font-size:12px;color:#888'>{proc_time['caveat']}</p>" if proc_time.get("caveat") else "")
+    ) if proc_time else ""
+
     html_body = f"""
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
       <h2 style="color:#1f3864">Clear2Buy — Policy Report</h2>
@@ -440,6 +535,7 @@ def send_clear2buy_report():
       <p>{summary}</p>
       {"<h3 style='color:#1f3864'>Procurement Path(s)</h3><ul>" + methods_html + "</ul>" if methods_html else ""}
       {chain_html}
+      {proc_time_html}
       {f'<h3 style="color:#1f3864">✈️ FAA Compliance Notes</h3><p style="background:#f0f4ff;padding:10px 12px;border-radius:6px;font-size:13px">{result.get("faa_notes")}</p>' if result.get("faa_notes") else ""}
       <hr style="border:none;border-top:1px solid #e0e8f0">
       <p style="font-size:12px;color:#888">This is a policy check only — nothing has been formally submitted.</p>
@@ -451,7 +547,10 @@ def send_clear2buy_report():
         + (f"Timing: Expedited — required by {required_date}\n" if process_timing == "expedited" else "")
         + f"Description: {description}\n\n"
         f"Verdict: {verdict_label}\n{summary}\n\n"
-        + ("Procurement Path(s):\n" + "\n".join(f"- {m['method']}" for m in methods) if methods else "")
+        + ("Procurement Path(s):\n" + "\n".join(f"- {m['method']}" for m in methods) + "\n\n" if methods else "")
+        + (f"WARNING: {proc_time['warning']}\n\n" if proc_time and proc_time.get("warning") else "")
+        + (f"Estimated Processing Time:\n{proc_time['disclaimer']}\n" if proc_time else "")
+        + (f"{proc_time['caveat']}\n" if proc_time and proc_time.get("caveat") else "")
     )
 
     success = send_email(email, f"Procurement Policy Check: {item_name}", text_body, html_body)
