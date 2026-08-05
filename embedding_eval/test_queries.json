@@ -1,0 +1,98 @@
+[
+  {
+    "query": "Do I need to get three quotes for a $50,000 equipment purchase?",
+    "expected_id": "procurement_methods.equipment.1"
+  },
+  {
+    "query": "Can I use my P-Card to buy a new laptop for the office?",
+    "expected_id": "pcard.prohibited_item_types"
+  },
+  {
+    "query": "What's the dollar limit before a construction project needs formal bidding?",
+    "expected_id": "bid_thresholds.construction"
+  },
+  {
+    "query": "How much can a department director approve without going higher up?",
+    "expected_id": "signing_authority.director"
+  },
+  {
+    "query": "Who has to sign off on a $200,000 public works contract?",
+    "expected_id": "signing_authority.city_manager"
+  },
+  {
+    "query": "What's the single transaction limit on the P-Card?",
+    "expected_id": "pcard.single_transaction_limit"
+  },
+  {
+    "query": "We need professional services under $15,000 — what do we need besides a quote?",
+    "expected_id": "procurement_methods.professional_services.0"
+  },
+  {
+    "query": "Is insurance required for a small maintenance job under $15k?",
+    "expected_id": "procurement_methods.maintenance_services.0"
+  },
+  {
+    "query": "What triggers the union referral requirement on a construction force account job?",
+    "expected_id": "processing_time.construction.under_75k"
+  },
+  {
+    "query": "How many days should we budget for a formal bid needing City Council approval?",
+    "expected_id": "processing_time.general.formal_bid_council"
+  },
+  {
+    "query": "Can supplies purchases skip competitive bidding if they're under $75,000?",
+    "expected_id": "bid_thresholds.supplies"
+  },
+  {
+    "query": "What approval process applies to IT software over $75,000?",
+    "expected_id": "procurement_methods.it_software.2"
+  },
+  {
+    "query": "Is a P-Card purchase for travel allowed?",
+    "expected_id": "procurement_methods.travel.0"
+  },
+  {
+    "query": "What's the total dollar cap where P-Card can never be used, no matter the item?",
+    "expected_id": "pcard.purchase_cap"
+  },
+  {
+    "query": "How much can the Assistant City Manager approve on a non-public contract?",
+    "expected_id": "signing_authority.acm"
+  },
+  {
+    "query": "What quotes do we need for IT equipment between $15,000 and $75,000?",
+    "expected_id": "procurement_methods.it_equipment.1"
+  },
+  {
+    "query": "At what point does professional services spending require a formal RFP?",
+    "expected_id": ["bid_thresholds.professional_services", "procurement_methods.professional_services.2"]
+  },
+  {
+    "query": "My P-Card limit isn't high enough for this purchase — how long does a limit increase take?",
+    "expected_id": "processing_time.general.pcard_limit_increase"
+  },
+  {
+    "query": "Can we use force account labor for a $60,000 construction job without going out to bid?",
+    "expected_id": "procurement_methods.construction.0"
+  },
+  {
+    "query": "Can I put a new server on my P-Card if it's under $15,000?",
+    "expected_id": "procurement_methods.it_equipment.0"
+  },
+  {
+    "query": "What's needed to buy office supplies costing more than $75,000?",
+    "expected_id": ["procurement_methods.supplies.2", "bid_thresholds.supplies"]
+  },
+  {
+    "query": "At what dollar amount does equipment require competitive bidding?",
+    "expected_id": "bid_thresholds.equipment"
+  },
+  {
+    "query": "What's the smallest contract dollar amount that needs sign-off, and who can approve it?",
+    "expected_id": "signing_authority.sub_director"
+  },
+  {
+    "query": "What contract dollar threshold requires City Council approval instead of staff sign-off?",
+    "expected_id": "signing_authority.city_council"
+  }
+]

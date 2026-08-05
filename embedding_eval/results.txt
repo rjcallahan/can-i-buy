@@ -1,0 +1,522 @@
+
+=== Ollama (nomic-embed-text) ===
+  Embedded 51 chunks, ran 24 queries.
+
+=== OpenAI (text-embedding-3-small) ===
+  Embedded 51 chunks, ran 24 queries.
+
+====================================================================================================
+Per-query comparison (top-3)
+====================================================================================================
+
+[1] Query: Do I need to get three quotes for a $50,000 equipment purchase?
+    Expected (procurement_methods.equipment.1): For equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.876) procurement_methods.equipment.1  <-- expected
+         For equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes.
+      2. (0.822) procurement_methods.other.1
+         For other, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes required.
+      3. (0.791) procurement_methods.supplies.1
+         For supplies, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes. No formal bid required.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.742) procurement_methods.equipment.1  <-- expected
+         For equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes.
+      2. (0.669) procurement_methods.it_equipment.1
+         For it equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes. IT Director approval required.
+      3. (0.633) procurement_methods.other.1
+         For other, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes required.
+
+[2] Query: Can I use my P-Card to buy a new laptop for the office?
+    Expected (pcard.prohibited_item_types): P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.781) pcard.prohibited_item_types  <-- expected
+         P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.
+      2. (0.695) pcard.purchase_cap
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+      3. (0.679) procurement_methods.it_software.0
+         For it software, purchases from $0 to $15,000 require Single Quote. Note: IT software is prohibited on P-Card.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.594) pcard.purchase_cap
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+      2. (0.584) pcard.prohibited_item_types  <-- expected
+         P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.
+      3. (0.511) processing_time.general.pcard_limit_increase
+         P-Card, limit increase required: normal processing takes 1-2 business days; expedited processing takes 1-1 days.
+
+[3] Query: What's the dollar limit before a construction project needs formal bidding?
+    Expected (bid_thresholds.construction): For construction, purchases at or above $220,000 require competitive bidding.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.777) procurement_methods.construction.2
+         For construction, purchases above $220,000 require Formal Public Project Bidding (IFB). Full formal bidding required per Public Contract Code.
+      2. (0.764) procurement_methods.construction.1
+         For construction, purchases from $75,000 to $220,000 require Informal Public Project Bidding. Informal bidding procedures per California UPCCAA.
+      3. (0.762) bid_thresholds.construction  <-- expected
+         For construction, purchases at or above $220,000 require competitive bidding.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.678) procurement_methods.construction.2
+         For construction, purchases above $220,000 require Formal Public Project Bidding (IFB). Full formal bidding required per Public Contract Code.
+      2. (0.675) bid_thresholds.construction  <-- expected
+         For construction, purchases at or above $220,000 require competitive bidding.
+      3. (0.664) procurement_methods.construction.1
+         For construction, purchases from $75,000 to $220,000 require Informal Public Project Bidding. Informal bidding procedures per California UPCCAA.
+
+[4] Query: How much can a department director approve without going higher up?
+    Expected (signing_authority.director): Department Director / Chief (director) may approve non-public contracts up to $25,000 and public works contracts up to $0.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.749) signing_authority.director  <-- expected
+         Department Director / Chief (director) may approve non-public contracts up to $25,000 and public works contracts up to $0.
+      2. (0.705) signing_authority.sub_director
+         Assistant / Deputy Director (sub_director) may approve non-public contracts up to $5,000 and public works contracts up to $0.
+      3. (0.618) signing_authority.city_manager
+         City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.637) signing_authority.director  <-- expected
+         Department Director / Chief (director) may approve non-public contracts up to $25,000 and public works contracts up to $0.
+      2. (0.563) signing_authority.sub_director
+         Assistant / Deputy Director (sub_director) may approve non-public contracts up to $5,000 and public works contracts up to $0.
+      3. (0.487) signing_authority.city_manager
+         City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+
+[5] Query: Who has to sign off on a $200,000 public works contract?
+    Expected (signing_authority.city_manager): City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.744) signing_authority.director
+         Department Director / Chief (director) may approve non-public contracts up to $25,000 and public works contracts up to $0.
+      2. (0.735) signing_authority.city_manager  <-- expected
+         City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+      3. (0.725) signing_authority.city_council
+         City Council (city_council) may approve non-public contracts up to $999,999,999 and public works contracts up to $999,999,999.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.646) signing_authority.city_manager  <-- expected
+         City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+      2. (0.617) signing_authority.director
+         Department Director / Chief (director) may approve non-public contracts up to $25,000 and public works contracts up to $0.
+      3. (0.610) signing_authority.sub_director
+         Assistant / Deputy Director (sub_director) may approve non-public contracts up to $5,000 and public works contracts up to $0.
+
+[6] Query: What's the single transaction limit on the P-Card?
+    Expected (pcard.single_transaction_limit): The default P-Card single-transaction limit is $2,500. Individual card limits may differ.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.933) pcard.single_transaction_limit  <-- expected
+         The default P-Card single-transaction limit is $2,500. Individual card limits may differ.
+      2. (0.780) processing_time.general.pcard_standard
+         P-Card, within transaction limit: normal processing takes 0-0 business days; expedited processing takes 0-0 days.
+      3. (0.748) processing_time.general.pcard_limit_increase
+         P-Card, limit increase required: normal processing takes 1-2 business days; expedited processing takes 1-1 days.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.833) pcard.single_transaction_limit  <-- expected
+         The default P-Card single-transaction limit is $2,500. Individual card limits may differ.
+      2. (0.735) pcard.purchase_cap
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+      3. (0.689) processing_time.general.pcard_standard
+         P-Card, within transaction limit: normal processing takes 0-0 business days; expedited processing takes 0-0 days.
+
+[7] Query: We need professional services under $15,000 — what do we need besides a quote?
+    Expected (procurement_methods.professional_services.0): For professional services, purchases from $0 to $15,000 require Single Quote. One quote. Service contract and insurance certificate required.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.802) procurement_methods.professional_services.0  <-- expected
+         For professional services, purchases from $0 to $15,000 require Single Quote. One quote. Service contract and insurance certificate required.
+      2. (0.743) procurement_methods.professional_services.1
+         For professional services, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes. Contract and insurance required. No...
+      3. (0.722) procurement_methods.maintenance_services.1
+         For maintenance services, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes required. Vendor quote and ba...
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.710) procurement_methods.professional_services.0  <-- expected
+         For professional services, purchases from $0 to $15,000 require Single Quote. One quote. Service contract and insurance certificate required.
+      2. (0.634) procurement_methods.professional_services.1
+         For professional services, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes. Contract and insurance required. No...
+      3. (0.624) procurement_methods.maintenance_services.1
+         For maintenance services, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes required. Vendor quote and ba...
+
+[8] Query: Is insurance required for a small maintenance job under $15k?
+    Expected (procurement_methods.maintenance_services.0): For maintenance services, purchases from $0 to $15,000 require Single Quote. One quote or negotiated purchase. P-Card eligible if under card limit....
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.729) procurement_methods.maintenance_services.0  <-- expected
+         For maintenance services, purchases from $0 to $15,000 require Single Quote. One quote or negotiated purchase. P-Card eligible if under card limit....
+      2. (0.660) procurement_methods.maintenance_services.1
+         For maintenance services, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes required. Vendor quote and ba...
+      3. (0.642) bid_thresholds.maintenance_services
+         For maintenance services, purchases at or above $75,000 require competitive bidding.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.580) procurement_methods.maintenance_services.1
+         For maintenance services, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes required. Vendor quote and ba...
+      2. (0.573) procurement_methods.professional_services.0
+         For professional services, purchases from $0 to $15,000 require Single Quote. One quote. Service contract and insurance certificate required.
+      3. (0.573) procurement_methods.maintenance_services.0  <-- expected
+         For maintenance services, purchases from $0 to $15,000 require Single Quote. One quote or negotiated purchase. P-Card eligible if under card limit....
+
+[9] Query: What triggers the union referral requirement on a construction force account job?
+    Expected (processing_time.construction.under_75k): Force Account / Negotiated — up to $74,999: normal processing takes 49-56 business days; expedited processing takes 42-49 days. If contract (non-ci...
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.670) processing_time.construction.under_75k  <-- expected
+         Force Account / Negotiated — up to $74,999: normal processing takes 49-56 business days; expedited processing takes 42-49 days. If contract (non-ci...
+      2. (0.625) procurement_methods.construction.0
+         For construction, purchases from $0 to $75,000 require Force Account or Negotiated Contract. City forces or negotiated contract allowed.
+      3. (0.561) procurement_methods.construction.2
+         For construction, purchases above $220,000 require Formal Public Project Bidding (IFB). Full formal bidding required per Public Contract Code.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.459) processing_time.construction.under_75k  <-- expected
+         Force Account / Negotiated — up to $74,999: normal processing takes 49-56 business days; expedited processing takes 42-49 days. If contract (non-ci...
+      2. (0.447) procurement_methods.construction.0
+         For construction, purchases from $0 to $75,000 require Force Account or Negotiated Contract. City forces or negotiated contract allowed.
+      3. (0.445) bid_thresholds.construction
+         For construction, purchases at or above $220,000 require competitive bidding.
+
+[10] Query: How many days should we budget for a formal bid needing City Council approval?
+    Expected (processing_time.general.formal_bid_council): Formal Bid — City Council sign-off: normal processing takes 56-56 business days; expedited processing takes 42-42 days.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.805) processing_time.general.formal_bid_council  <-- expected
+         Formal Bid — City Council sign-off: normal processing takes 56-56 business days; expedited processing takes 42-42 days.
+      2. (0.756) processing_time.general.formal_bid_acm_cm
+         Formal Bid — ACM/City Manager sign-off: normal processing takes 42-42 business days; expedited processing takes 35-35 days.
+      3. (0.722) processing_time.construction.informal_bid
+         Informal Public Project Bidding — $75,000–$219,999: normal processing takes 70-84 business days; expedited processing takes 63-70 days.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.706) processing_time.general.formal_bid_council  <-- expected
+         Formal Bid — City Council sign-off: normal processing takes 56-56 business days; expedited processing takes 42-42 days.
+      2. (0.649) processing_time.general.formal_bid_acm_cm
+         Formal Bid — ACM/City Manager sign-off: normal processing takes 42-42 business days; expedited processing takes 35-35 days.
+      3. (0.543) procurement_methods.construction.2
+         For construction, purchases above $220,000 require Formal Public Project Bidding (IFB). Full formal bidding required per Public Contract Code.
+
+[11] Query: Can supplies purchases skip competitive bidding if they're under $75,000?
+    Expected (bid_thresholds.supplies): For supplies, purchases at or above $75,000 require competitive bidding.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.912) bid_thresholds.supplies  <-- expected
+         For supplies, purchases at or above $75,000 require competitive bidding.
+      2. (0.861) bid_thresholds.other
+         For other, purchases at or above $75,000 require competitive bidding.
+      3. (0.853) bid_thresholds.equipment
+         For equipment, purchases at or above $75,000 require competitive bidding.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.816) bid_thresholds.supplies  <-- expected
+         For supplies, purchases at or above $75,000 require competitive bidding.
+      2. (0.729) bid_thresholds.other
+         For other, purchases at or above $75,000 require competitive bidding.
+      3. (0.727) bid_thresholds.equipment
+         For equipment, purchases at or above $75,000 require competitive bidding.
+
+[12] Query: What approval process applies to IT software over $75,000?
+    Expected (procurement_methods.it_software.2): For it software, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal process required. Procurement will manage.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.812) procurement_methods.it_software.1
+         For it software, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes required. IT Director approval.
+      2. (0.792) bid_thresholds.it_software
+         For it software, purchases at or above $75,000 require competitive bidding.
+      3. (0.776) procurement_methods.it_software.2  <-- expected
+         For it software, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal process required. Procurement will manage.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.687) procurement_methods.it_software.1
+         For it software, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes required. IT Director approval.
+      2. (0.670) bid_thresholds.it_software
+         For it software, purchases at or above $75,000 require competitive bidding.
+      3. (0.647) procurement_methods.it_software.2  <-- expected
+         For it software, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal process required. Procurement will manage.
+
+[13] Query: Is a P-Card purchase for travel allowed?
+    Expected (procurement_methods.travel.0): For travel, purchases above $0 require Travel Policy. City Manager approval required for P-Card travel use. Per diem limits apply.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.779) procurement_methods.travel.0  <-- expected
+         For travel, purchases above $0 require Travel Policy. City Manager approval required for P-Card travel use. Per diem limits apply.
+      2. (0.776) pcard.prohibited_item_types
+         P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.
+      3. (0.772) pcard.purchase_cap
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.745) pcard.purchase_cap
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+      2. (0.710) procurement_methods.travel.0  <-- expected
+         For travel, purchases above $0 require Travel Policy. City Manager approval required for P-Card travel use. Per diem limits apply.
+      3. (0.707) pcard.prohibited_item_types
+         P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.
+
+[14] Query: What's the total dollar cap where P-Card can never be used, no matter the item?
+    Expected (pcard.purchase_cap): P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.799) pcard.purchase_cap  <-- expected
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+      2. (0.779) pcard.single_transaction_limit
+         The default P-Card single-transaction limit is $2,500. Individual card limits may differ.
+      3. (0.719) pcard.prohibited_item_types
+         P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.739) pcard.purchase_cap  <-- expected
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+      2. (0.649) pcard.prohibited_item_types
+         P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.
+      3. (0.632) pcard.single_transaction_limit
+         The default P-Card single-transaction limit is $2,500. Individual card limits may differ.
+
+[15] Query: How much can the Assistant City Manager approve on a non-public contract?
+    Expected (signing_authority.acm): Assistant / Deputy City Manager (acm) may approve non-public contracts up to $50,000 and public works contracts up to $60,000.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.885) signing_authority.acm  <-- expected
+         Assistant / Deputy City Manager (acm) may approve non-public contracts up to $50,000 and public works contracts up to $60,000.
+      2. (0.879) signing_authority.city_manager
+         City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+      3. (0.852) signing_authority.city_council
+         City Council (city_council) may approve non-public contracts up to $999,999,999 and public works contracts up to $999,999,999.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.829) signing_authority.city_manager
+         City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+      2. (0.815) signing_authority.acm  <-- expected
+         Assistant / Deputy City Manager (acm) may approve non-public contracts up to $50,000 and public works contracts up to $60,000.
+      3. (0.728) signing_authority.sub_director
+         Assistant / Deputy Director (sub_director) may approve non-public contracts up to $5,000 and public works contracts up to $0.
+
+[16] Query: What quotes do we need for IT equipment between $15,000 and $75,000?
+    Expected (procurement_methods.it_equipment.1): For it equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes. IT Director approval required.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.865) procurement_methods.it_equipment.1  <-- expected
+         For it equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes. IT Director approval required.
+      2. (0.852) procurement_methods.equipment.1
+         For equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes.
+      3. (0.818) procurement_methods.it_software.1
+         For it software, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes required. IT Director approval.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.686) procurement_methods.it_equipment.1  <-- expected
+         For it equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes. IT Director approval required.
+      2. (0.637) procurement_methods.equipment.1
+         For equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes.
+      3. (0.637) procurement_methods.it_equipment.0
+         For it equipment, purchases from $0 to $15,000 require Single Quote. Note: IT equipment is prohibited on P-Card.
+
+[17] Query: At what point does professional services spending require a formal RFP?
+    Expected (bid_thresholds.professional_services): For professional services, purchases at or above $75,000 require competitive bidding.
+    Expected (procurement_methods.professional_services.2): For professional services, purchases above $75,000 require Formal Competitive Bid (RFP/RFQ). Formal qualifications-based selection. Procurement wil...
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.779) procurement_methods.professional_services.2  <-- expected
+         For professional services, purchases above $75,000 require Formal Competitive Bid (RFP/RFQ). Formal qualifications-based selection. Procurement wil...
+      2. (0.728) procurement_methods.maintenance_services.2
+         For maintenance services, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding required. Procurement will m...
+      3. (0.713) procurement_methods.equipment.2
+         For equipment, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding required. Procurement will manage.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.752) procurement_methods.professional_services.2  <-- expected
+         For professional services, purchases above $75,000 require Formal Competitive Bid (RFP/RFQ). Formal qualifications-based selection. Procurement wil...
+      2. (0.698) bid_thresholds.professional_services  <-- expected
+         For professional services, purchases at or above $75,000 require competitive bidding.
+      3. (0.646) procurement_methods.maintenance_services.2
+         For maintenance services, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding required. Procurement will m...
+
+[18] Query: My P-Card limit isn't high enough for this purchase — how long does a limit increase take?
+    Expected (processing_time.general.pcard_limit_increase): P-Card, limit increase required: normal processing takes 1-2 business days; expedited processing takes 1-1 days.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.843) processing_time.general.pcard_limit_increase  <-- expected
+         P-Card, limit increase required: normal processing takes 1-2 business days; expedited processing takes 1-1 days.
+      2. (0.785) pcard.single_transaction_limit
+         The default P-Card single-transaction limit is $2,500. Individual card limits may differ.
+      3. (0.774) processing_time.general.pcard_standard
+         P-Card, within transaction limit: normal processing takes 0-0 business days; expedited processing takes 0-0 days.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.729) processing_time.general.pcard_limit_increase  <-- expected
+         P-Card, limit increase required: normal processing takes 1-2 business days; expedited processing takes 1-1 days.
+      2. (0.669) processing_time.general.pcard_standard
+         P-Card, within transaction limit: normal processing takes 0-0 business days; expedited processing takes 0-0 days.
+      3. (0.638) pcard.single_transaction_limit
+         The default P-Card single-transaction limit is $2,500. Individual card limits may differ.
+
+[19] Query: Can we use force account labor for a $60,000 construction job without going out to bid?
+    Expected (procurement_methods.construction.0): For construction, purchases from $0 to $75,000 require Force Account or Negotiated Contract. City forces or negotiated contract allowed.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.767) procurement_methods.construction.0  <-- expected
+         For construction, purchases from $0 to $75,000 require Force Account or Negotiated Contract. City forces or negotiated contract allowed.
+      2. (0.690) processing_time.construction.under_75k
+         Force Account / Negotiated — up to $74,999: normal processing takes 49-56 business days; expedited processing takes 42-49 days. If contract (non-ci...
+      3. (0.660) procurement_methods.construction.1
+         For construction, purchases from $75,000 to $220,000 require Informal Public Project Bidding. Informal bidding procedures per California UPCCAA.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.635) procurement_methods.construction.0  <-- expected
+         For construction, purchases from $0 to $75,000 require Force Account or Negotiated Contract. City forces or negotiated contract allowed.
+      2. (0.551) bid_thresholds.construction
+         For construction, purchases at or above $220,000 require competitive bidding.
+      3. (0.542) procurement_methods.construction.2
+         For construction, purchases above $220,000 require Formal Public Project Bidding (IFB). Full formal bidding required per Public Contract Code.
+
+[20] Query: Can I put a new server on my P-Card if it's under $15,000?
+    Expected (procurement_methods.it_equipment.0): For it equipment, purchases from $0 to $15,000 require Single Quote. Note: IT equipment is prohibited on P-Card.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.688) procurement_methods.maintenance_services.0
+         For maintenance services, purchases from $0 to $15,000 require Single Quote. One quote or negotiated purchase. P-Card eligible if under card limit....
+      2. (0.684) pcard.purchase_cap
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+      3. (0.682) procurement_methods.it_equipment.0  <-- expected
+         For it equipment, purchases from $0 to $15,000 require Single Quote. Note: IT equipment is prohibited on P-Card.
+
+    OpenAI (text-embedding-3-small):
+      [FAIL]
+      1. (0.593) pcard.purchase_cap
+         P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item ...
+      2. (0.578) pcard.prohibited_item_types
+         P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.
+      3. (0.575) pcard.single_transaction_limit
+         The default P-Card single-transaction limit is $2,500. Individual card limits may differ.
+
+[21] Query: What's needed to buy office supplies costing more than $75,000?
+    Expected (procurement_methods.supplies.2): For supplies, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding process required. Procurement will manage.
+    Expected (bid_thresholds.supplies): For supplies, purchases at or above $75,000 require competitive bidding.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.784) bid_thresholds.supplies  <-- expected
+         For supplies, purchases at or above $75,000 require competitive bidding.
+      2. (0.738) bid_thresholds.it_equipment
+         For it equipment, purchases at or above $75,000 require competitive bidding.
+      3. (0.735) procurement_methods.supplies.1
+         For supplies, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes. No formal bid required.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.608) bid_thresholds.supplies  <-- expected
+         For supplies, purchases at or above $75,000 require competitive bidding.
+      2. (0.553) bid_thresholds.it_software
+         For it software, purchases at or above $75,000 require competitive bidding.
+      3. (0.549) bid_thresholds.professional_services
+         For professional services, purchases at or above $75,000 require competitive bidding.
+
+[22] Query: At what dollar amount does equipment require competitive bidding?
+    Expected (bid_thresholds.equipment): For equipment, purchases at or above $75,000 require competitive bidding.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.870) bid_thresholds.equipment  <-- expected
+         For equipment, purchases at or above $75,000 require competitive bidding.
+      2. (0.843) bid_thresholds.it_equipment
+         For it equipment, purchases at or above $75,000 require competitive bidding.
+      3. (0.830) procurement_methods.equipment.2
+         For equipment, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding required. Procurement will manage.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.834) bid_thresholds.equipment  <-- expected
+         For equipment, purchases at or above $75,000 require competitive bidding.
+      2. (0.824) bid_thresholds.it_equipment
+         For it equipment, purchases at or above $75,000 require competitive bidding.
+      3. (0.746) bid_thresholds.construction
+         For construction, purchases at or above $220,000 require competitive bidding.
+
+[23] Query: What's the smallest contract dollar amount that needs sign-off, and who can approve it?
+    Expected (signing_authority.sub_director): Assistant / Deputy Director (sub_director) may approve non-public contracts up to $5,000 and public works contracts up to $0.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.688) signing_authority.sub_director  <-- expected
+         Assistant / Deputy Director (sub_director) may approve non-public contracts up to $5,000 and public works contracts up to $0.
+      2. (0.687) signing_authority.city_council
+         City Council (city_council) may approve non-public contracts up to $999,999,999 and public works contracts up to $999,999,999.
+      3. (0.684) signing_authority.director
+         Department Director / Chief (director) may approve non-public contracts up to $25,000 and public works contracts up to $0.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.546) signing_authority.sub_director  <-- expected
+         Assistant / Deputy Director (sub_director) may approve non-public contracts up to $5,000 and public works contracts up to $0.
+      2. (0.526) signing_authority.director
+         Department Director / Chief (director) may approve non-public contracts up to $25,000 and public works contracts up to $0.
+      3. (0.525) signing_authority.city_council
+         City Council (city_council) may approve non-public contracts up to $999,999,999 and public works contracts up to $999,999,999.
+
+[24] Query: What contract dollar threshold requires City Council approval instead of staff sign-off?
+    Expected (signing_authority.city_council): City Council (city_council) may approve non-public contracts up to $999,999,999 and public works contracts up to $999,999,999.
+
+    Ollama (nomic-embed-text):
+      [PASS]
+      1. (0.792) signing_authority.city_council  <-- expected
+         City Council (city_council) may approve non-public contracts up to $999,999,999 and public works contracts up to $999,999,999.
+      2. (0.765) signing_authority.city_manager
+         City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+      3. (0.719) signing_authority.acm
+         Assistant / Deputy City Manager (acm) may approve non-public contracts up to $50,000 and public works contracts up to $60,000.
+
+    OpenAI (text-embedding-3-small):
+      [PASS]
+      1. (0.676) signing_authority.city_council  <-- expected
+         City Council (city_council) may approve non-public contracts up to $999,999,999 and public works contracts up to $999,999,999.
+      2. (0.626) signing_authority.city_manager
+         City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.
+      3. (0.595) signing_authority.acm
+         Assistant / Deputy City Manager (acm) may approve non-public contracts up to $50,000 and public works contracts up to $60,000.
+
+====================================================================================================
+Summary — recall@3
+====================================================================================================
+  Ollama (nomic-embed-text): 24/24 (100%)
+  OpenAI (text-embedding-3-small): 23/24 (96%)

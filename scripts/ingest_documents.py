@@ -2,8 +2,9 @@
 """
 Ingest policy PDFs into the ChromaDB vector store.
 
-Run once after initial deployment and again whenever policy documents change.
-The store persists on the Railway volume — app code reads it at request time.
+Run locally whenever policy documents change, then commit the result. Writes
+the store to data/<tenant>/chroma_db and syncs it to the git-tracked seed at
+tenants/<tenant>/chroma_db, which Railway copies from on first boot.
 
 Usage:
     python scripts/ingest_documents.py
@@ -12,6 +13,7 @@ Usage:
 
 import argparse
 import os
+import shutil
 import sys
 
 # Allow running from the scripts/ subdirectory
@@ -22,6 +24,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import policy_rag  # noqa: E402 — must follow sys.path patch and load_dotenv()
+
+
+def sync_repo_chroma():
+    """Copy the freshly-ingested store to tenants/<tenant>/chroma_db, the
+    git-tracked seed Railway boots from. Keeps it from drifting out of date."""
+    repo_path = policy_rag._REPO_CHROMA
+    print(f"Syncing seed store: {repo_path}")
+    if os.path.exists(repo_path):
+        shutil.rmtree(repo_path)
+    shutil.copytree(policy_rag._CHROMA_PATH, repo_path)
 
 
 def main():
@@ -47,6 +59,7 @@ def main():
 
     if count > 0:
         print(f"\nDone. Vector store is ready with {count} source documents.")
+        sync_repo_chroma()
     else:
         print("\nNo documents ingested. Check that PDF files exist in the documents folder.")
         sys.exit(1)

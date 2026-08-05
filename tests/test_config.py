@@ -209,11 +209,11 @@ class TestPCard:
     def test_construction_prohibited(self):
         assert cfg.pcard_eligible("construction") is False
 
-    def test_supplies_eligible(self):
-        assert cfg.pcard_eligible("supplies") is True
+    def test_supplies_prohibited(self):
+        assert cfg.pcard_eligible("supplies") is False
 
-    def test_equipment_eligible(self):
-        assert cfg.pcard_eligible("equipment") is True
+    def test_equipment_prohibited(self):
+        assert cfg.pcard_eligible("equipment") is False
 
     def test_maintenance_services_eligible(self):
         assert cfg.pcard_eligible("maintenance_services") is True

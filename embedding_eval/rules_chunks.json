@@ -1,0 +1,257 @@
+[
+  {
+    "id": "procurement_methods.construction.0",
+    "text": "For construction, purchases from $0 to $75,000 require Force Account or Negotiated Contract. City forces or negotiated contract allowed.",
+    "source_field": "procurement_methods.construction[0]"
+  },
+  {
+    "id": "procurement_methods.construction.1",
+    "text": "For construction, purchases from $75,000 to $220,000 require Informal Public Project Bidding. Informal bidding procedures per California UPCCAA.",
+    "source_field": "procurement_methods.construction[1]"
+  },
+  {
+    "id": "procurement_methods.construction.2",
+    "text": "For construction, purchases above $220,000 require Formal Public Project Bidding (IFB). Full formal bidding required per Public Contract Code.",
+    "source_field": "procurement_methods.construction[2]"
+  },
+  {
+    "id": "procurement_methods.equipment.0",
+    "text": "For equipment, purchases from $0 to $15,000 require Single Quote / P-Card. One quote or negotiated purchase.",
+    "source_field": "procurement_methods.equipment[0]"
+  },
+  {
+    "id": "procurement_methods.equipment.1",
+    "text": "For equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes.",
+    "source_field": "procurement_methods.equipment[1]"
+  },
+  {
+    "id": "procurement_methods.equipment.2",
+    "text": "For equipment, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding required. Procurement will manage.",
+    "source_field": "procurement_methods.equipment[2]"
+  },
+  {
+    "id": "procurement_methods.it_equipment.0",
+    "text": "For it equipment, purchases from $0 to $15,000 require Single Quote. Note: IT equipment is prohibited on P-Card.",
+    "source_field": "procurement_methods.it_equipment[0]"
+  },
+  {
+    "id": "procurement_methods.it_equipment.1",
+    "text": "For it equipment, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes. IT Director approval required.",
+    "source_field": "procurement_methods.it_equipment[1]"
+  },
+  {
+    "id": "procurement_methods.it_equipment.2",
+    "text": "For it equipment, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding required. IT and Procurement approval.",
+    "source_field": "procurement_methods.it_equipment[2]"
+  },
+  {
+    "id": "procurement_methods.it_software.0",
+    "text": "For it software, purchases from $0 to $15,000 require Single Quote. Note: IT software is prohibited on P-Card.",
+    "source_field": "procurement_methods.it_software[0]"
+  },
+  {
+    "id": "procurement_methods.it_software.1",
+    "text": "For it software, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes required. IT Director approval.",
+    "source_field": "procurement_methods.it_software[1]"
+  },
+  {
+    "id": "procurement_methods.it_software.2",
+    "text": "For it software, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal process required. Procurement will manage.",
+    "source_field": "procurement_methods.it_software[2]"
+  },
+  {
+    "id": "procurement_methods.maintenance_services.0",
+    "text": "For maintenance services, purchases from $0 to $15,000 require Single Quote. One quote or negotiated purchase. P-Card eligible if under card limit. No insurance certificate required for routine maintenance.",
+    "source_field": "procurement_methods.maintenance_services[0]"
+  },
+  {
+    "id": "procurement_methods.maintenance_services.1",
+    "text": "For maintenance services, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three written quotes required. Vendor quote and basic service agreement sufficient.",
+    "source_field": "procurement_methods.maintenance_services[1]"
+  },
+  {
+    "id": "procurement_methods.maintenance_services.2",
+    "text": "For maintenance services, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding required. Procurement will manage.",
+    "source_field": "procurement_methods.maintenance_services[2]"
+  },
+  {
+    "id": "procurement_methods.other.0",
+    "text": "For other, purchases from $0 to $15,000 require Single Quote. One quote or negotiated purchase.",
+    "source_field": "procurement_methods.other[0]"
+  },
+  {
+    "id": "procurement_methods.other.1",
+    "text": "For other, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes required.",
+    "source_field": "procurement_methods.other[1]"
+  },
+  {
+    "id": "procurement_methods.other.2",
+    "text": "For other, purchases above $75,000 require Formal Competitive Bid. Formal competitive process required. Procurement will manage.",
+    "source_field": "procurement_methods.other[2]"
+  },
+  {
+    "id": "procurement_methods.professional_services.0",
+    "text": "For professional services, purchases from $0 to $15,000 require Single Quote. One quote. Service contract and insurance certificate required.",
+    "source_field": "procurement_methods.professional_services[0]"
+  },
+  {
+    "id": "procurement_methods.professional_services.1",
+    "text": "For professional services, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Three quotes. Contract and insurance required. Not P-Card eligible.",
+    "source_field": "procurement_methods.professional_services[1]"
+  },
+  {
+    "id": "procurement_methods.professional_services.2",
+    "text": "For professional services, purchases above $75,000 require Formal Competitive Bid (RFP/RFQ). Formal qualifications-based selection. Procurement will manage.",
+    "source_field": "procurement_methods.professional_services[2]"
+  },
+  {
+    "id": "procurement_methods.supplies.0",
+    "text": "For supplies, purchases from $0 to $15,000 require Single Quote. One quote or negotiated purchase. P-Card eligible if under card limit.",
+    "source_field": "procurement_methods.supplies[0]"
+  },
+  {
+    "id": "procurement_methods.supplies.1",
+    "text": "For supplies, purchases from $15,000 to $75,000 require Informal Process — 3 Quotes. Obtain minimum three written quotes. No formal bid required.",
+    "source_field": "procurement_methods.supplies[1]"
+  },
+  {
+    "id": "procurement_methods.supplies.2",
+    "text": "For supplies, purchases above $75,000 require Formal Competitive Bid (IFB/RFP). Formal competitive bidding process required. Procurement will manage.",
+    "source_field": "procurement_methods.supplies[2]"
+  },
+  {
+    "id": "procurement_methods.travel.0",
+    "text": "For travel, purchases above $0 require Travel Policy. City Manager approval required for P-Card travel use. Per diem limits apply.",
+    "source_field": "procurement_methods.travel[0]"
+  },
+  {
+    "id": "bid_thresholds.construction",
+    "text": "For construction, purchases at or above $220,000 require competitive bidding.",
+    "source_field": "bid_thresholds.construction"
+  },
+  {
+    "id": "bid_thresholds.equipment",
+    "text": "For equipment, purchases at or above $75,000 require competitive bidding.",
+    "source_field": "bid_thresholds.equipment"
+  },
+  {
+    "id": "bid_thresholds.it_equipment",
+    "text": "For it equipment, purchases at or above $75,000 require competitive bidding.",
+    "source_field": "bid_thresholds.it_equipment"
+  },
+  {
+    "id": "bid_thresholds.it_software",
+    "text": "For it software, purchases at or above $75,000 require competitive bidding.",
+    "source_field": "bid_thresholds.it_software"
+  },
+  {
+    "id": "bid_thresholds.maintenance_services",
+    "text": "For maintenance services, purchases at or above $75,000 require competitive bidding.",
+    "source_field": "bid_thresholds.maintenance_services"
+  },
+  {
+    "id": "bid_thresholds.other",
+    "text": "For other, purchases at or above $75,000 require competitive bidding.",
+    "source_field": "bid_thresholds.other"
+  },
+  {
+    "id": "bid_thresholds.professional_services",
+    "text": "For professional services, purchases at or above $75,000 require competitive bidding.",
+    "source_field": "bid_thresholds.professional_services"
+  },
+  {
+    "id": "bid_thresholds.supplies",
+    "text": "For supplies, purchases at or above $75,000 require competitive bidding.",
+    "source_field": "bid_thresholds.supplies"
+  },
+  {
+    "id": "bid_thresholds.travel",
+    "text": "For travel, purchases at or above $999,999,999 require competitive bidding.",
+    "source_field": "bid_thresholds.travel"
+  },
+  {
+    "id": "signing_authority.sub_director",
+    "text": "Assistant / Deputy Director (sub_director) may approve non-public contracts up to $5,000 and public works contracts up to $0.",
+    "source_field": "signing_authority.levels[0]"
+  },
+  {
+    "id": "signing_authority.director",
+    "text": "Department Director / Chief (director) may approve non-public contracts up to $25,000 and public works contracts up to $0.",
+    "source_field": "signing_authority.levels[1]"
+  },
+  {
+    "id": "signing_authority.acm",
+    "text": "Assistant / Deputy City Manager (acm) may approve non-public contracts up to $50,000 and public works contracts up to $60,000.",
+    "source_field": "signing_authority.levels[2]"
+  },
+  {
+    "id": "signing_authority.city_manager",
+    "text": "City Manager (city_manager) may approve non-public contracts up to $150,000 and public works contracts up to $220,000.",
+    "source_field": "signing_authority.levels[3]"
+  },
+  {
+    "id": "signing_authority.city_council",
+    "text": "City Council (city_council) may approve non-public contracts up to $999,999,999 and public works contracts up to $999,999,999.",
+    "source_field": "signing_authority.levels[4]"
+  },
+  {
+    "id": "pcard.prohibited_item_types",
+    "text": "P-Card may not be used for: supplies, equipment, it equipment, it software, professional services, construction, travel.",
+    "source_field": "pcard.prohibited_item_types"
+  },
+  {
+    "id": "pcard.single_transaction_limit",
+    "text": "The default P-Card single-transaction limit is $2,500. Individual card limits may differ.",
+    "source_field": "pcard.single_transaction_limit"
+  },
+  {
+    "id": "pcard.purchase_cap",
+    "text": "P-Card is never permitted for total purchase amounts above $5,000. Purchases over $5,000 require a formal agreement or contract regardless of item type.",
+    "source_field": "pcard.purchase_cap"
+  },
+  {
+    "id": "processing_time.construction.under_75k",
+    "text": "Force Account / Negotiated — up to $74,999: normal processing takes 49-56 business days; expedited processing takes 42-49 days. If contract (non-city) labor is proposed, AB339 requires HR to refer the request to the applicable union, which then has 45 days to respond. No response within 45 days means AB339 does not apply. This can add time beyond the estimate above.",
+    "source_field": "processing_time.construction.under_75k"
+  },
+  {
+    "id": "processing_time.construction.informal_bid",
+    "text": "Informal Public Project Bidding — $75,000–$219,999: normal processing takes 70-84 business days; expedited processing takes 63-70 days.",
+    "source_field": "processing_time.construction.informal_bid"
+  },
+  {
+    "id": "processing_time.construction.formal_bid",
+    "text": "Formal Public Project Bidding (IFB) — $220,000+: normal processing takes 84-112 business days; expedited processing takes 70-112 days.",
+    "source_field": "processing_time.construction.formal_bid"
+  },
+  {
+    "id": "processing_time.general.single_quote",
+    "text": "Single Quote — sub-director/director sign-off: normal processing takes 2-3 business days; expedited processing takes 1-2 days.",
+    "source_field": "processing_time.general.single_quote"
+  },
+  {
+    "id": "processing_time.general.pcard_standard",
+    "text": "P-Card, within transaction limit: normal processing takes 0-0 business days; expedited processing takes 0-0 days.",
+    "source_field": "processing_time.general.pcard_standard"
+  },
+  {
+    "id": "processing_time.general.pcard_limit_increase",
+    "text": "P-Card, limit increase required: normal processing takes 1-2 business days; expedited processing takes 1-1 days.",
+    "source_field": "processing_time.general.pcard_limit_increase"
+  },
+  {
+    "id": "processing_time.general.informal_3_quotes",
+    "text": "Informal — 3 Quotes — director/ACM sign-off: normal processing takes 2-3 business days; expedited processing takes 1-2 days.",
+    "source_field": "processing_time.general.informal_3_quotes"
+  },
+  {
+    "id": "processing_time.general.formal_bid_acm_cm",
+    "text": "Formal Bid — ACM/City Manager sign-off: normal processing takes 42-42 business days; expedited processing takes 35-35 days.",
+    "source_field": "processing_time.general.formal_bid_acm_cm"
+  },
+  {
+    "id": "processing_time.general.formal_bid_council",
+    "text": "Formal Bid — City Council sign-off: normal processing takes 56-56 business days; expedited processing takes 42-42 days.",
+    "source_field": "processing_time.general.formal_bid_council"
+  }
+]

@@ -1,7 +1,13 @@
 {
   "_comment": "City of Palm Springs — Procurement Helper Configuration",
-  "_last_updated": "2026-07-03",
+  "_last_updated": "2026-08-05",
   "_note": "All dollar amounts are in USD. Edit this file to update thresholds city-wide.",
+  "admin": {
+    "_comment": "Emails granted admin dashboard access, in addition to the master ADMIN_USERNAME env var.",
+    "emails": [
+      "rjames.callahan@gmail.com"
+    ]
+  },
   "ai": {
     "_comment": "AI model settings. Update model here to change across the entire application.",
     "model": "gpt-4o-mini"
@@ -32,8 +38,6 @@
     "Airport",
     "City Clerk",
     "City Manager",
-    "Community & Economic Development",
-    "Engineering & Public Works",
     "Finance",
     "Fire Department",
     "Human Resources",
@@ -42,14 +46,12 @@
     "Parks & Recreation",
     "Police Department",
     "Procurement",
-    "Utilities & Water Resources"
+    "Utilities & Water Resources",
+    "Economic Development",
+    "Community",
+    "Engineering",
+    "Public Works"
   ],
-  "admin": {
-    "_comment": "Emails granted admin dashboard access, in addition to the master ADMIN_USERNAME env var.",
-    "emails": [
-      "rjames.callahan@gmail.com"
-    ]
-  },
   "mail": {
     "_comment": "Outbound email (Zoho SMTP). Set smtp_password via SMTP_PASSWORD env var — never store passwords here.",
     "allowed_addresses": [
@@ -69,13 +71,123 @@
     "_note": "single_transaction_limit is the default per-transaction cap. Individual card limits may differ.",
     "_purchase_cap_note": "P-Card is never permitted for total purchase amounts above this threshold. Purchases over $5,000 require a formal agreement or contract regardless of item type.",
     "prohibited_item_types": [
+      "supplies",
+      "equipment",
       "it_equipment",
       "it_software",
       "professional_services",
-      "construction"
+      "construction",
+      "travel"
     ],
     "purchase_cap": 5000,
     "single_transaction_limit": 2500
+  },
+  "processing_time": {
+    "_comment": "Estimated days to process each procurement class, shown to requesters and (future) factored into the AI report",
+    "construction": {
+      "under_75k": {
+        "label": "Force Account / Negotiated — up to $74,999",
+        "normal_days": [
+          49,
+          56
+        ],
+        "expedited_days": [
+          42,
+          49
+        ],
+        "caveat": "If contract (non-city) labor is proposed, AB339 requires HR to refer the request to the applicable union, which then has 45 days to respond. No response within 45 days means AB339 does not apply. This can add time beyond the estimate above."
+      },
+      "informal_bid": {
+        "label": "Informal Public Project Bidding — $75,000–$219,999",
+        "normal_days": [
+          70,
+          84
+        ],
+        "expedited_days": [
+          63,
+          70
+        ]
+      },
+      "formal_bid": {
+        "label": "Formal Public Project Bidding (IFB) — $220,000+",
+        "normal_days": [
+          84,
+          112
+        ],
+        "expedited_days": [
+          70,
+          112
+        ]
+      }
+    },
+    "general": {
+      "single_quote": {
+        "label": "Single Quote — sub-director/director sign-off",
+        "normal_days": [
+          2,
+          3
+        ],
+        "expedited_days": [
+          1,
+          2
+        ]
+      },
+      "pcard_standard": {
+        "label": "P-Card, within transaction limit",
+        "normal_days": [
+          0,
+          0
+        ],
+        "expedited_days": [
+          0,
+          0
+        ]
+      },
+      "pcard_limit_increase": {
+        "label": "P-Card, limit increase required",
+        "normal_days": [
+          1,
+          2
+        ],
+        "expedited_days": [
+          1,
+          1
+        ]
+      },
+      "informal_3_quotes": {
+        "label": "Informal — 3 Quotes — director/ACM sign-off",
+        "normal_days": [
+          2,
+          3
+        ],
+        "expedited_days": [
+          1,
+          2
+        ]
+      },
+      "formal_bid_acm_cm": {
+        "label": "Formal Bid — ACM/City Manager sign-off",
+        "normal_days": [
+          42,
+          42
+        ],
+        "expedited_days": [
+          35,
+          35
+        ]
+      },
+      "formal_bid_council": {
+        "label": "Formal Bid — City Council sign-off",
+        "normal_days": [
+          56,
+          56
+        ],
+        "expedited_days": [
+          42,
+          42
+        ]
+      }
+    }
   },
   "procurement_methods": {
     "_comment": "Threshold tiers defining the required procurement method per item type",
@@ -150,7 +262,7 @@
     "maintenance_services": [
       {
         "max": 15000,
-        "method": "Single Quote / P-Card",
+        "method": "Single Quote",
         "process": "One quote or negotiated purchase. P-Card eligible if under card limit. No insurance certificate required for routine maintenance."
       },
       {
@@ -201,7 +313,7 @@
     "supplies": [
       {
         "max": 15000,
-        "method": "Single Quote / P-Card",
+        "method": "Single Quote ",
         "process": "One quote or negotiated purchase. P-Card eligible if under card limit."
       },
       {
@@ -258,26 +370,5 @@
         "public_max": 999999999
       }
     ]
-  },
-  "processing_time": {
-    "_comment": "Estimated days to process each procurement class, shown to requesters and (future) factored into the AI report",
-    "general": {
-      "single_quote":         {"label": "Single Quote — sub-director/director sign-off", "normal_days": [2, 3],  "expedited_days": [1, 2]},
-      "pcard_standard":       {"label": "P-Card, within transaction limit",               "normal_days": [0, 0],  "expedited_days": [0, 0]},
-      "pcard_limit_increase": {"label": "P-Card, limit increase required",                "normal_days": [1, 2],  "expedited_days": [1, 1]},
-      "informal_3_quotes":    {"label": "Informal — 3 Quotes — director/ACM sign-off",    "normal_days": [2, 3],  "expedited_days": [1, 2]},
-      "formal_bid_acm_cm":    {"label": "Formal Bid — ACM/City Manager sign-off",         "normal_days": [42, 42], "expedited_days": [35, 35]},
-      "formal_bid_council":   {"label": "Formal Bid — City Council sign-off",             "normal_days": [56, 56], "expedited_days": [42, 42]}
-    },
-    "construction": {
-      "under_75k": {
-        "label": "Force Account / Negotiated — up to $74,999",
-        "normal_days": [49, 56],
-        "expedited_days": [42, 49],
-        "caveat": "If contract (non-city) labor is proposed, AB339 requires HR to refer the request to the applicable union, which then has 45 days to respond. No response within 45 days means AB339 does not apply. This can add time beyond the estimate above."
-      },
-      "informal_bid": {"label": "Informal Public Project Bidding — $75,000–$219,999", "normal_days": [70, 84], "expedited_days": [63, 70]},
-      "formal_bid":   {"label": "Formal Public Project Bidding (IFB) — $220,000+",    "normal_days": [84, 112], "expedited_days": [70, 112]}
-    }
   }
 }
