@@ -49,6 +49,9 @@ def build_prompt(data: dict) -> str:
 
     threshold_range = f"${threshold_rule['min']:,.2f}-${threshold_rule['max']:,.2f}"
 
+    required_doc_category = threshold_rule.get("category", "not specified")
+    required_doc_list     = ", ".join(threshold_rule.get("documents", [])) or "vendor quote"
+
     bid_note = (
         f"NOTE: This request is AT OR ABOVE the ${cfg.bid_threshold(item_type):,.0f} "
         f"competitive bid threshold for {item_type}. "
@@ -165,14 +168,14 @@ DOCUMENT MATCHING — check each attached file using fuzzy matching:
 - w9, w-9, vendor-form                      → vendor form PROVIDED
 Mark as provided generously. Only mark required if NO file could reasonably match.
 
-REQUIRED DOCUMENTS BY PURCHASE TYPE:
-- supplies/equipment under ${cfg.bid_threshold('supplies'):,.0f}: vendor quote (if not sole source)
-- supplies/equipment over that threshold: three vendor quotes
-- it_equipment/it_software: IT Director approval form (next step, not blocking)
-- professional_services: insurance certificate
-- construction: engineering plans (next step for large projects)
-- travel: travel authorization form
-- bid path (at/above threshold): do NOT require quotes — Procurement solicits bids formally
+REQUIRED DOCUMENTS FOR THIS REQUEST: this request's category is "{required_doc_category}" and,
+per city policy for {item_type} at this amount, the required documents are exactly: {required_doc_list}.
+Use ONLY this list for the "required_documents" field and for "documents_needed" in valid_methods.
+Do NOT add, infer, or mention any document not in this list — in particular, do NOT mention a
+service contract, a contract approval process, a scope of work, or an insurance certificate
+unless it appears in this list. Do NOT omit anything that does appear in this list.
+Exception: on the bid path (at/above threshold), do NOT require quotes — Procurement solicits
+bids formally instead.
 
 {"DEMO MODE — override normal verdict logic:" if is_demo else ""}
 {"""- Policy preview only. No documents submitted yet.

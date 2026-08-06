@@ -14,8 +14,9 @@ Database location
 
 Tables
 ──────
-  analysis_log     — every /analyze call
-  sole_source_log  — every /api/analyze-sole-source call
+  analysis_log      — every /analyze call
+  sole_source_log   — every /api/analyze-sole-source call
+  classification_log — every /api/classify-request-type call
 
 Both tables gain an emailed flag + recipient address when the user
 sends the report, letting you see how often results are acted on.
@@ -101,6 +102,18 @@ def init() -> None:
             report_emailed_to   TEXT
         );
 
+        CREATE TABLE IF NOT EXISTS classification_log (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            created_at          TEXT    DEFAULT (datetime('now')),
+            description         TEXT,
+            llm_type            TEXT,
+            llm_confidence      TEXT,
+            llm_reasoning       TEXT,
+            accepted            INTEGER,
+            corrected_type      TEXT,
+            final_type          TEXT
+        );
+
         CREATE TABLE IF NOT EXISTS magic_tokens (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             token      TEXT    UNIQUE NOT NULL,
@@ -148,6 +161,11 @@ def init() -> None:
     try:
         with _conn() as con:
             con.execute("ALTER TABLE sole_source_log ADD COLUMN file_blob BLOB")
+    except Exception:
+        pass
+    try:
+        with _conn() as con:
+            con.execute("ALTER TABLE analysis_log ADD COLUMN request_type TEXT")
     except Exception:
         pass
 
@@ -210,8 +228,9 @@ def log_analysis(data: dict, result: dict) -> int:
                      item_name, item_type, amount, account_code, description,
                      process_timing, required_date,
                      pcard, sole_source, federal_funds, faa_governed,
-                     verdict, procurement_method, approval_role, report_json)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                     verdict, procurement_method, approval_role, report_json,
+                     request_type)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 (
                     data.get("requester_name"),
@@ -232,6 +251,7 @@ def log_analysis(data: dict, result: dict) -> int:
                     result.get("procurement_method"),
                     approval_role,
                     report_json,
+                    data.get("request_type"),
                 ),
             )
             return cur.lastrowid or 0
@@ -313,6 +333,59 @@ def mark_sole_source_emailed(log_id: int, email: str) -> None:
             )
     except Exception as e:
         print(f"[usage_db] mark_sole_source_emailed failed: {e}", flush=True)
+
+
+# ── Request type classification logging ───────────────────────────
+
+def log_classification(description: str, result: dict) -> int:
+    """
+    Insert a row for a completed /api/classify-request-type call.
+    final_type starts out equal to the LLM's type; updated later if the
+    requester corrects it. Returns the new row id.
+    """
+    try:
+        with _conn() as con:
+            cur = con.execute(
+                """
+                INSERT INTO classification_log
+                    (description, llm_type, llm_confidence, llm_reasoning, final_type)
+                VALUES (?,?,?,?,?)
+                """,
+                (
+                    description,
+                    result.get("type"),
+                    result.get("confidence"),
+                    result.get("reasoning"),
+                    result.get("type"),
+                ),
+            )
+            return cur.lastrowid or 0
+    except Exception as e:
+        print(f"[usage_db] log_classification failed: {e}", flush=True)
+        return 0
+
+
+def update_classification_feedback(log_id: int, accepted: bool, final_type: str) -> None:
+    """Record whether the requester accepted the auto-classification or corrected it."""
+    if not log_id:
+        return
+    try:
+        with _conn() as con:
+            con.execute(
+                """
+                UPDATE classification_log
+                SET accepted=?, corrected_type=?, final_type=?
+                WHERE id=?
+                """,
+                (
+                    1 if accepted else 0,
+                    None if accepted else final_type,
+                    final_type,
+                    log_id,
+                ),
+            )
+    except Exception as e:
+        print(f"[usage_db] update_classification_feedback failed: {e}", flush=True)
 
 
 # ── Archiving ──────────────────────────────────────────────────────

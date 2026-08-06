@@ -135,6 +135,72 @@ class TestProcurementMethods:
         assert "construction" in methods
 
 
+# ── Goods vs. service documentation split ─────────────────────────
+#
+# Every tier drives the compliance prompt's required-documents list
+# directly (see intake.build_prompt). A goods tier that accidentally
+# picks up contract/insurance language — or a service tier that's
+# missing it — is a real compliance error, not a cosmetic one.
+
+_CONTRACT_TERMS = ("contract", "insurance", "scope of work", "sow")
+
+class TestGoodsServiceDocuments:
+
+    def test_every_tier_has_category_and_documents(self):
+        for item_type, tiers in cfg.all_procurement_methods().items():
+            for tier in tiers:
+                assert tier.get("category") in ("goods", "service", "mixed"), (
+                    f"{item_type} tier {tier['method']!r} missing a valid category"
+                )
+                assert tier.get("documents"), (
+                    f"{item_type} tier {tier['method']!r} has no documents list"
+                )
+
+    def test_goods_tiers_never_require_contract_or_insurance(self):
+        for item_type, tiers in cfg.all_procurement_methods().items():
+            for tier in tiers:
+                if tier.get("category") != "goods":
+                    continue
+                docs = " ".join(tier["documents"]).lower()
+                assert not any(term in docs for term in _CONTRACT_TERMS), (
+                    f"{item_type} tier {tier['method']!r} is goods but requires "
+                    f"a contract/insurance document: {tier['documents']}"
+                )
+
+    def test_professional_services_tiers_all_require_contract(self):
+        # Professional services always needs a contract, at every tier —
+        # unlike routine maintenance, which waives it at the low tier.
+        for tier in cfg.procurement_methods("professional_services"):
+            docs = " ".join(tier["documents"]).lower()
+            assert "contract" in docs, (
+                f"professional_services tier {tier['method']!r} has no contract "
+                f"document: {tier['documents']}"
+            )
+
+    def test_maintenance_services_low_tier_waives_contract(self):
+        # Routine maintenance under $15k is quote + PO only, per policy —
+        # a contract only kicks in once three quotes are required.
+        tier = cfg.get_procurement_method("maintenance_services", 9_000)
+        assert tier["category"] == "service"
+        assert tier["documents"] == ["vendor quote", "purchase order"]
+
+    def test_maintenance_services_mid_tier_requires_agreement(self):
+        tier = cfg.get_procurement_method("maintenance_services", 50_000)
+        assert tier["category"] == "service"
+        assert "basic service agreement" in tier["documents"]
+
+    def test_equipment_low_tier_is_goods_only(self):
+        tier = cfg.get_procurement_method("equipment", 9_000)
+        assert tier["category"] == "goods"
+        assert tier["documents"] == ["vendor quote", "purchase order"]
+
+    def test_professional_services_low_tier_requires_contract_and_insurance(self):
+        tier = cfg.get_procurement_method("professional_services", 9_000)
+        assert tier["category"] == "service"
+        assert "service contract" in tier["documents"]
+        assert "insurance certificate" in tier["documents"]
+
+
 # ── Signing authority / approval roles ───────────────────────────
 
 class TestSigningAuthority:

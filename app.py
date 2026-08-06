@@ -27,6 +27,7 @@ from openai import OpenAI
 
 import intake
 import usage_db
+from classify_request_type import classify_request_type
 from procurement_config import cfg
 
 load_dotenv()
@@ -456,6 +457,47 @@ def analyze():
         mimetype="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ── Request type classification (advisory) ─────────────────────
+# Sets requester expectations about likely documentation. Does NOT gate
+# or route the request — procurement still makes the binding determination.
+
+_REQUEST_TYPE_MESSAGES = {
+    "goods": "This looks like a goods purchase — you'll likely need vendor quotes and a spec sheet, not a service contract.",
+    "service": "This looks like it may need a service contract — you'll likely need a scope of work and proof of insurance ready.",
+    "mixed": "This may involve both goods and services — you'll likely need documentation for both, like a spec sheet and a scope of work.",
+}
+
+
+@app.route("/api/classify-request-type", methods=["POST"])
+def classify_request_type_route():
+    body = request.get_json(silent=True) or {}
+    description = (body.get("description") or "").strip()
+    if not description:
+        return jsonify({"error": "No description provided"}), 400
+
+    try:
+        result = classify_request_type(description)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    result["message"] = _REQUEST_TYPE_MESSAGES.get(result.get("type"), "")
+    result["log_id"] = usage_db.log_classification(description, result)
+    return jsonify(result)
+
+
+@app.route("/api/classify-request-type/feedback", methods=["POST"])
+def classify_request_type_feedback():
+    body = request.get_json(silent=True) or {}
+    final_type = body.get("final_type")
+    if final_type not in ("goods", "service", "mixed"):
+        return jsonify({"error": "Invalid final_type"}), 400
+
+    usage_db.update_classification_feedback(
+        body.get("log_id"), bool(body.get("accepted")), final_type
+    )
+    return jsonify({"ok": True})
 
 
 # ── Send analysis report via email ────────────────────────────

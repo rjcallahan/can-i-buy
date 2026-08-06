@@ -170,8 +170,61 @@
                 <textarea
                   id="description"
                   placeholder="Describe what is needed and why it supports City operations."
+                  onblur="onDescriptionBlur()"
                 ></textarea>
                 <div class="err-msg" id="err-description">Required</div>
+              </div>
+
+              <!-- Request type classification (advisory) -->
+              <div class="field full" id="request-type-field" style="display: none">
+                <div
+                  id="request-type-message"
+                  style="
+                    background: #eef3fb;
+                    border-left: 3px solid #2e5496;
+                    padding: 10px 14px;
+                    font-size: 13px;
+                    color: #333;
+                    border-radius: 0 4px 4px 0;
+                    margin-bottom: 8px;
+                  "
+                ></div>
+                <label
+                  style="font-size: 12px; font-weight: 400; color: #777"
+                  >Does that look right?</label
+                >
+                <div class="toggle-group">
+                  <input
+                    type="radio"
+                    name="request_type_feedback"
+                    id="rt-accept"
+                    value="accept"
+                    onchange="onRequestTypeFeedbackChange()"
+                  />
+                  <label for="rt-accept">That's right</label>
+                  <input
+                    type="radio"
+                    name="request_type_feedback"
+                    id="rt-correct"
+                    value="correct"
+                    onchange="onRequestTypeFeedbackChange()"
+                  />
+                  <label for="rt-correct">Not quite</label>
+                </div>
+                <div
+                  id="request-type-correction"
+                  style="display: none; margin-top: 8px"
+                >
+                  <select
+                    id="request-type-select"
+                    onchange="onRequestTypeCorrected()"
+                  >
+                    <option value="">Select the correct type</option>
+                    <option value="goods">Goods</option>
+                    <option value="service">Service</option>
+                    <option value="mixed">Mixed — both goods and services</option>
+                  </select>
+                </div>
               </div>
 
               <!-- Sole Source -->
@@ -647,6 +700,84 @@
         if (input) input.classList.toggle("input-error", show);
       }
 
+      // ── Request type classification (advisory) ────────────────
+      // Fires once the requester finishes typing the description. Never
+      // blocks the form — if it fails, the field just stays hidden.
+      var requestType = null;
+      var requestTypeLogId = null;
+      var lastClassifiedDescription = "";
+
+      function resetRequestType() {
+        requestType = null;
+        requestTypeLogId = null;
+        lastClassifiedDescription = "";
+        document.getElementById("request-type-field").style.display = "none";
+        document.getElementById("rt-accept").checked = false;
+        document.getElementById("rt-correct").checked = false;
+        document.getElementById("request-type-correction").style.display = "none";
+        document.getElementById("request-type-select").value = "";
+      }
+
+      async function onDescriptionBlur() {
+        const desc = getVal("description");
+        if (!desc || desc.length < 8 || desc === lastClassifiedDescription) return;
+        resetRequestType();
+        lastClassifiedDescription = desc;
+
+        try {
+          const res = await fetch("/api/classify-request-type", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ description: desc }),
+          });
+          const r = await res.json();
+          if (!res.ok || r.error) throw new Error(r.error || "Classification failed");
+          requestType = r.type;
+          requestTypeLogId = r.log_id;
+          document.getElementById("request-type-message").textContent = r.message || "";
+          document.getElementById("request-type-field").style.display = "block";
+        } catch (e) {
+          console.warn("Request type classification unavailable:", e);
+        }
+      }
+
+      function onRequestTypeFeedbackChange() {
+        const val = document.querySelector(
+          'input[name="request_type_feedback"]:checked'
+        )?.value;
+        const correction = document.getElementById("request-type-correction");
+        if (val === "accept") {
+          correction.style.display = "none";
+          sendRequestTypeFeedback(true, requestType);
+        } else if (val === "correct") {
+          correction.style.display = "block";
+        }
+      }
+
+      function onRequestTypeCorrected() {
+        const val = document.getElementById("request-type-select").value;
+        if (!val) return;
+        requestType = val;
+        sendRequestTypeFeedback(false, val);
+      }
+
+      async function sendRequestTypeFeedback(accepted, finalType) {
+        if (!requestTypeLogId || !finalType) return;
+        try {
+          await fetch("/api/classify-request-type/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              log_id: requestTypeLogId,
+              accepted: accepted,
+              final_type: finalType,
+            }),
+          });
+        } catch (e) {
+          console.warn("Request type feedback not logged:", e);
+        }
+      }
+
       // ── Validation ───────────────────────────────────────────
       function validateForm() {
         let ok = true;
@@ -684,6 +815,7 @@
           required_date: getVal("required_date"),
           sole_source: getRadio("sole_source"),
           faa_governed: getRadio("faa_governed"),
+          request_type: requestType,
           attachments_list: [],
         };
 
@@ -1327,6 +1459,7 @@
         document.getElementById("description").value = "";
         document.getElementById("department").value = "";
         document.getElementById("amount-hint").textContent = "";
+        resetRequestType();
         // Reset radios
         document.getElementById("ss-no").checked = true;
         document.getElementById("faa-no").checked = true;

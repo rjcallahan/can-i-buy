@@ -245,6 +245,51 @@ class TestAnalyzeEndpoint:
         assert signer["role"] == "city_manager"
 
 
+# ── /api/classify-request-type endpoints ────────────────────────────
+
+def make_classification_response(result: dict):
+    """Non-streaming mock for classify_request_type.client.chat.completions.create."""
+    resp = MagicMock()
+    resp.choices = [MagicMock()]
+    resp.choices[0].message.content = json.dumps(result)
+    return resp
+
+
+class TestClassifyRequestTypeEndpoint:
+
+    def test_classify_returns_type_and_message(self, client):
+        mock_result = {"type": "goods", "confidence": "high", "reasoning": "A physical item."}
+        with patch(
+            "classify_request_type.client.chat.completions.create",
+            return_value=make_classification_response(mock_result),
+        ):
+            r = client.post("/api/classify-request-type", json={"description": "12 foot ladder"})
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data["type"] == "goods"
+        assert "vendor quotes" in data["message"]
+        assert data["log_id"]
+
+    def test_classify_missing_description_returns_400(self, client):
+        r = client.post("/api/classify-request-type", json={"description": ""})
+        assert r.status_code == 400
+
+    def test_classify_feedback_accepted(self, client):
+        r = client.post(
+            "/api/classify-request-type/feedback",
+            json={"log_id": 1, "accepted": True, "final_type": "goods"},
+        )
+        assert r.status_code == 200
+        assert r.get_json()["ok"] is True
+
+    def test_classify_feedback_invalid_final_type_returns_400(self, client):
+        r = client.post(
+            "/api/classify-request-type/feedback",
+            json={"log_id": 1, "accepted": False, "final_type": "bogus"},
+        )
+        assert r.status_code == 400
+
+
 # ── /api/send-report endpoint ─────────────────────────────────────
 
 class TestSendReportEndpoint:
