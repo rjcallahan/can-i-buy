@@ -10,7 +10,7 @@ All assertions use the known Palm Springs values from
 tenants/palm-springs/config.json. If a value changes in the config file,
 the test will fail — intentionally, to catch accidental edits.
 """
-from procurement_config import cfg
+from procurement_config import _Config, cfg
 
 # ── Bid thresholds ────────────────────────────────────────────────
 
@@ -178,11 +178,11 @@ class TestGoodsServiceDocuments:
             )
 
     def test_maintenance_services_low_tier_waives_contract(self):
-        # Routine maintenance under $15k is quote + PO only, per policy —
+        # Routine maintenance under $15k is quote only, per policy —
         # a contract only kicks in once three quotes are required.
         tier = cfg.get_procurement_method("maintenance_services", 9_000)
         assert tier["category"] == "service"
-        assert tier["documents"] == ["vendor quote", "purchase order"]
+        assert tier["documents"] == ["vendor quote"]
 
     def test_maintenance_services_mid_tier_requires_agreement(self):
         tier = cfg.get_procurement_method("maintenance_services", 50_000)
@@ -192,13 +192,35 @@ class TestGoodsServiceDocuments:
     def test_equipment_low_tier_is_goods_only(self):
         tier = cfg.get_procurement_method("equipment", 9_000)
         assert tier["category"] == "goods"
-        assert tier["documents"] == ["vendor quote", "purchase order"]
+        assert tier["documents"] == ["vendor quote"]
 
     def test_professional_services_low_tier_requires_contract_and_insurance(self):
         tier = cfg.get_procurement_method("professional_services", 9_000)
         assert tier["category"] == "service"
         assert "service contract" in tier["documents"]
         assert "insurance certificate" in tier["documents"]
+
+
+# ── Optional rule toggles ─────────────────────────────────────────
+
+class TestRuleToggles:
+
+    def test_palm_springs_faa_rule_enabled(self):
+        # Palm Springs has an airport, so the FAA rule applies.
+        assert cfg.rule_enabled("faa") is True
+
+    def test_missing_rule_defaults_to_enabled(self):
+        # A tenant config with no "rules" section at all shouldn't break
+        # existing behavior — every rule stays on by default.
+        bare = _Config.__new__(_Config)
+        bare._data = {}
+        assert bare.rule_enabled("faa") is True
+
+    def test_rule_can_be_explicitly_disabled(self):
+        # A city with no airport turns FAA off in its own config.
+        no_airport = _Config.__new__(_Config)
+        no_airport._data = {"rules": {"faa": {"enabled": False}}}
+        assert no_airport.rule_enabled("faa") is False
 
 
 # ── Signing authority / approval roles ───────────────────────────

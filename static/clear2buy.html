@@ -596,6 +596,19 @@
         }
       })();
 
+      // ── Hide FAA field for tenants that don't need it ───────────
+      (async function loadRulesConfig() {
+        try {
+          const res = await fetch("/api/config/rules");
+          const data = await res.json();
+          if (data.faa_enabled === false) {
+            document.getElementById("faa-field").style.display = "none";
+          }
+        } catch (e) {
+          console.warn("Rules config API unavailable, leaving FAA field visible:", e);
+        }
+      })();
+
       // ── Show Dashboard link for admins ──────────────────────────
       (async function loadAdminStatus() {
         try {
@@ -925,7 +938,10 @@
           </div>`;
         })();
 
-        const approvalHTML = buildApprovalHTML(r.approval_chain);
+        const requiresContract = (r.valid_methods || []).some((m) =>
+          (m.documents_needed || []).some((d) => /contract|agreement/i.test(d)),
+        );
+        const approvalHTML = buildApprovalHTML(r.approval_chain, requiresContract);
 
         const processingTimeHTML = (() => {
           if (!r.processing_time) return "";
@@ -1034,7 +1050,7 @@
       }
 
       // ── Approval chain renderer ───────────────────────────────
-      function buildApprovalHTML(chain) {
+      function buildApprovalHTML(chain, requiresContract) {
         if (!chain || !chain.length) return "";
         var steps = "";
         for (var i = 0; i < chain.length; i++) {
@@ -1050,8 +1066,13 @@
               step.note +
               "</div>"
             : "";
+          var lastSubLabelText = requiresContract
+            ? "Signs contract to authorize PO"
+            : "Approves PO";
           var subLabel = isLast
-            ? '<div style="font-size:11px;color:#1a7a4a;font-weight:600;margin-top:1px">Signs contract to authorize PO</div>'
+            ? '<div style="font-size:11px;color:#1a7a4a;font-weight:600;margin-top:1px">' +
+              lastSubLabelText +
+              "</div>"
             : '<div style="font-size:11px;color:#777;margin-top:1px">Approves purchase</div>';
           var connector = !isLast
             ? '<div style="width:2px;height:14px;background:#c8d6e5;margin:2px auto"></div>'
@@ -1089,10 +1110,20 @@
             "</div>" +
             "</div>";
         }
+        var sectionTitle = requiresContract
+          ? "Contract Approval Path"
+          : "Approval Path";
+        var introText = requiresContract
+          ? "Once submitted, Procurement will validate your quotes, generate a contract, and route it through the following levels for signature before a PO is issued."
+          : "Once submitted, Procurement will validate your quotes and route it through the following levels for sign-off before a PO is issued.";
         return (
           '<div class="result-section" style="margin-top:16px">' +
-          "<h3>Contract Approval Path</h3>" +
-          '<div style="font-size:12px;color:#666;margin-bottom:10px">Once submitted, Procurement will validate your quotes, generate a contract, and route it through the following levels for signature before a PO is issued.</div>' +
+          "<h3>" +
+          sectionTitle +
+          "</h3>" +
+          '<div style="font-size:12px;color:#666;margin-bottom:10px">' +
+          introText +
+          "</div>" +
           '<div style="border:1px solid #d0dae8;border-radius:6px;padding:14px 16px">' +
           steps +
           "</div></div>"

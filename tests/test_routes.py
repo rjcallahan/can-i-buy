@@ -108,6 +108,12 @@ class TestHealthAndStaticRoutes:
         assert "Finance" in depts
         assert "Airport" in depts
 
+    def test_rules_endpoint_reports_faa_enabled(self, client):
+        # Palm Springs has an airport, so FAA stays on.
+        r = client.get("/api/config/rules")
+        assert r.status_code == 200
+        assert r.get_json() == {"faa_enabled": True}
+
 
 # ── Admin auth ────────────────────────────────────────────────────
 

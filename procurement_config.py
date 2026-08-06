@@ -178,6 +178,19 @@ class _Config:
         """Return the default per-transaction P-Card limit."""
         return float(self._get("pcard", "single_transaction_limit"))
 
+    # ── Optional rule toggles ─────────────────────────────────
+
+    def rule_enabled(self, name: str, default: bool = True) -> bool:
+        """
+        Return whether an optional processing rule (e.g. "faa") applies to
+        this tenant. Rules not present in config default to enabled, so
+        existing tenant configs keep their current behavior unchanged.
+        """
+        try:
+            return bool(self._get("rules", name, "enabled"))
+        except KeyError:
+            return default
+
     def ai_model(self, default: str = "claude-sonnet-4-20250514") -> str:
         try:
             return self._get("ai", "model") or default

@@ -111,6 +111,15 @@ td input[type=text],td input[type=number]{padding:5px 8px;border:1px solid #d0d9
       </div>
       <div class="field"><label>Procurement Email</label><input id="city-email" type="text"></div>
       <div class="field"><label>Warehouse / Delivery Address</label><input id="city-warehouse" type="text"></div>
+      <div class="field">
+        <label>Airport</label>
+        <div class="cb-group">
+          <div class="cb-row">
+            <input type="checkbox" id="has-airport">
+            <label for="has-airport">This city has an airport (enables FAA-governed purchase rules)</label>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- BID THRESHOLDS -->
@@ -366,7 +375,11 @@ function renderProcurementMethods(methods) {
 }
 
 function tierRow(type, i, t) {
-  return `<tr>
+  // category/documents have no editor UI yet — stash them on the row so a
+  // save round-trip doesn't silently drop them (this is what caused the
+  // Palm Springs config to lose its category/documents fields before).
+  const meta = esc(JSON.stringify({category: t.category, documents: t.documents}));
+  return `<tr data-meta="${meta}">
     <td><input type="number" id="mm-${type}-${i}" value="${t.max??''}" step="1000" style="width:110px"></td>
     <td><input type="text"   id="mn-${type}-${i}" value="${esc(t.method)}"></td>
     <td><input type="text"   id="mp-${type}-${i}" value="${esc(t.process)}"></td>
@@ -387,10 +400,14 @@ function collectProcurementMethods() {
     if (!tbody) return;
     result[type] = [...tbody.querySelectorAll('tr')].map(row => {
       const inputs = row.querySelectorAll('input');
+      let meta = {};
+      try { meta = JSON.parse(row.dataset.meta || '{}'); } catch (e) {}
       return {
         max:     parseFloat(inputs[0]?.value) || 0,
         method:  inputs[1]?.value || '',
         process: inputs[2]?.value || '',
+        ...(meta.category  ? {category: meta.category}   : {}),
+        ...(meta.documents ? {documents: meta.documents} : {}),
       };
     });
   });
@@ -458,6 +475,7 @@ function populateAll(c) {
   setVal('city-email',      c.city?.procurement_email);
   setVal('city-phone',      c.city?.procurement_phone);
   setVal('city-warehouse',  c.city?.warehouse_address);
+  document.getElementById('has-airport').checked = c.rules?.faa?.enabled !== false;
   // Thresholds
   renderBidThresholds(c.bid_thresholds || {});
   // Signing
@@ -495,6 +513,7 @@ function collectConfig() {
     procurement_phone:  document.getElementById('city-phone').value,
     warehouse_address:  document.getElementById('city-warehouse').value,
   };
+  c.rules = { ...c.rules, faa: { ...c.rules?.faa, enabled: document.getElementById('has-airport').checked } };
   ITEM_TYPES.forEach(t => {
     c.bid_thresholds[t] = parseFloat(document.getElementById('bt-'+t)?.value) || 0;
   });

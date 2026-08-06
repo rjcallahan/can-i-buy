@@ -1,6 +1,6 @@
 {
   "_comment": "City of Palm Springs — Procurement Helper Configuration",
-  "_last_updated": "2026-08-05",
+  "_last_updated": "2026-08-06",
   "_note": "All dollar amounts are in USD. Edit this file to update thresholds city-wide.",
   "admin": {
     "_comment": "Emails granted admin dashboard access, in addition to the master ADMIN_USERNAME env var.",
@@ -73,11 +73,11 @@
     "prohibited_item_types": [
       "supplies",
       "equipment",
-      "it_equipment",
-      "it_software",
       "professional_services",
       "construction",
-      "travel"
+      "travel",
+      "it_equipment",
+      "it_software"
     ],
     "purchase_cap": 5000,
     "single_transaction_limit": 2500
@@ -124,8 +124,8 @@
       "single_quote": {
         "label": "Single Quote — sub-director/director sign-off",
         "normal_days": [
-          2,
-          3
+          1,
+          2
         ],
         "expedited_days": [
           1,
@@ -198,21 +198,30 @@
         "method": "Force Account or Negotiated Contract",
         "process": "City forces or negotiated contract allowed.",
         "category": "mixed",
-        "documents": ["vendor quote", "contract"]
+        "documents": [
+          "vendor quote",
+          "contract"
+        ]
       },
       {
         "max": 219999.99,
         "method": "Informal Public Project Bidding",
         "process": "Informal bidding procedures per California UPCCAA.",
         "category": "mixed",
-        "documents": ["informal bid documents", "contract"]
+        "documents": [
+          "informal bid documents",
+          "contract"
+        ]
       },
       {
         "max": 999999999,
         "method": "Formal Public Project Bidding (IFB)",
         "process": "Full formal bidding required per Public Contract Code.",
         "category": "mixed",
-        "documents": ["formal bid documents", "contract"]
+        "documents": [
+          "formal bid documents",
+          "contract"
+        ]
       }
     ],
     "equipment": [
@@ -221,21 +230,27 @@
         "method": "Single Quote / P-Card",
         "process": "One quote or negotiated purchase.",
         "category": "goods",
-        "documents": ["vendor quote", "purchase order"]
+        "documents": [
+          "vendor quote"
+        ]
       },
       {
         "max": 74999.99,
         "method": "Informal Process — 3 Quotes",
         "process": "Obtain minimum three written quotes.",
         "category": "goods",
-        "documents": ["three vendor quotes", "purchase order"]
+        "documents": [
+          "three vendor quotes"
+        ]
       },
       {
         "max": 999999999,
         "method": "Formal Competitive Bid (IFB/RFP)",
         "process": "Formal competitive bidding required. Procurement will manage.",
         "category": "goods",
-        "documents": ["formal bid documents", "purchase order"]
+        "documents": [
+          "formal bid documents"
+        ]
       }
     ],
     "it_equipment": [
@@ -244,21 +259,30 @@
         "method": "Single Quote",
         "process": "Note: IT equipment is prohibited on P-Card.",
         "category": "goods",
-        "documents": ["vendor quote", "purchase order", "IT Director approval"]
+        "documents": [
+          "vendor quote",
+          "IT Director approval"
+        ]
       },
       {
         "max": 74999.99,
         "method": "Informal Process — 3 Quotes",
         "process": "Three written quotes. IT Director approval required.",
         "category": "goods",
-        "documents": ["three vendor quotes", "purchase order", "IT Director approval"]
+        "documents": [
+          "three vendor quotes",
+          "IT Director approval"
+        ]
       },
       {
         "max": 999999999,
         "method": "Formal Competitive Bid (IFB/RFP)",
         "process": "Formal competitive bidding required. IT and Procurement approval.",
         "category": "goods",
-        "documents": ["formal bid documents", "purchase order", "IT Director approval"]
+        "documents": [
+          "formal bid documents",
+          "IT Director approval"
+        ]
       }
     ],
     "it_software": [
@@ -267,21 +291,30 @@
         "method": "Single Quote",
         "process": "Note: IT software is prohibited on P-Card.",
         "category": "goods",
-        "documents": ["vendor quote", "purchase order", "IT Director approval"]
+        "documents": [
+          "vendor quote",
+          "IT Director approval"
+        ]
       },
       {
         "max": 74999.99,
         "method": "Informal Process — 3 Quotes",
         "process": "Three quotes required. IT Director approval.",
         "category": "goods",
-        "documents": ["three vendor quotes", "purchase order", "IT Director approval"]
+        "documents": [
+          "three vendor quotes",
+          "IT Director approval"
+        ]
       },
       {
         "max": 999999999,
         "method": "Formal Competitive Bid (IFB/RFP)",
         "process": "Formal process required. Procurement will manage.",
         "category": "goods",
-        "documents": ["formal bid documents", "purchase order", "IT Director approval"]
+        "documents": [
+          "formal bid documents",
+          "IT Director approval"
+        ]
       }
     ],
     "maintenance_services": [
@@ -290,21 +323,29 @@
         "method": "Single Quote",
         "process": "One quote or negotiated purchase. P-Card eligible if under card limit. No insurance certificate required for routine maintenance.",
         "category": "service",
-        "documents": ["vendor quote", "purchase order"]
+        "documents": [
+          "vendor quote"
+        ]
       },
       {
         "max": 74999.99,
         "method": "Informal Process — 3 Quotes",
         "process": "Three written quotes required. Vendor quote and basic service agreement sufficient.",
         "category": "service",
-        "documents": ["three vendor quotes", "basic service agreement"]
+        "documents": [
+          "three vendor quotes",
+          "basic service agreement"
+        ]
       },
       {
         "max": 999999999,
         "method": "Formal Competitive Bid (IFB/RFP)",
         "process": "Formal competitive bidding required. Procurement will manage.",
         "category": "service",
-        "documents": ["formal bid documents", "contract"]
+        "documents": [
+          "formal bid documents",
+          "contract"
+        ]
       }
     ],
     "other": [
@@ -313,21 +354,27 @@
         "method": "Single Quote",
         "process": "One quote or negotiated purchase.",
         "category": "goods",
-        "documents": ["vendor quote", "purchase order"]
+        "documents": [
+          "vendor quote"
+        ]
       },
       {
         "max": 74999.99,
         "method": "Informal Process — 3 Quotes",
         "process": "Three quotes required.",
         "category": "goods",
-        "documents": ["three vendor quotes", "purchase order"]
+        "documents": [
+          "three vendor quotes"
+        ]
       },
       {
         "max": 999999999,
         "method": "Formal Competitive Bid",
         "process": "Formal competitive process required. Procurement will manage.",
         "category": "goods",
-        "documents": ["formal bid documents", "purchase order"]
+        "documents": [
+          "formal bid documents"
+        ]
       }
     ],
     "professional_services": [
@@ -336,21 +383,33 @@
         "method": "Single Quote",
         "process": "One quote. Service contract and insurance certificate required.",
         "category": "service",
-        "documents": ["vendor quote", "service contract", "insurance certificate"]
+        "documents": [
+          "vendor quote",
+          "service contract",
+          "insurance certificate"
+        ]
       },
       {
         "max": 74999.99,
         "method": "Informal Process — 3 Quotes",
         "process": "Three quotes. Contract and insurance required. Not P-Card eligible.",
         "category": "service",
-        "documents": ["three vendor quotes", "service contract", "insurance certificate"]
+        "documents": [
+          "three vendor quotes",
+          "service contract",
+          "insurance certificate"
+        ]
       },
       {
         "max": 999999999,
         "method": "Formal Competitive Bid (RFP/RFQ)",
         "process": "Formal qualifications-based selection. Procurement will manage.",
         "category": "service",
-        "documents": ["formal RFP/RFQ documents", "service contract", "insurance certificate"]
+        "documents": [
+          "formal RFP/RFQ documents",
+          "service contract",
+          "insurance certificate"
+        ]
       }
     ],
     "supplies": [
@@ -359,21 +418,27 @@
         "method": "Single Quote ",
         "process": "One quote or negotiated purchase. P-Card eligible if under card limit.",
         "category": "goods",
-        "documents": ["vendor quote", "purchase order"]
+        "documents": [
+          "vendor quote"
+        ]
       },
       {
         "max": 74999.99,
         "method": "Informal Process — 3 Quotes",
         "process": "Obtain minimum three written quotes. No formal bid required.",
         "category": "goods",
-        "documents": ["three vendor quotes", "purchase order"]
+        "documents": [
+          "three vendor quotes"
+        ]
       },
       {
         "max": 999999999,
         "method": "Formal Competitive Bid (IFB/RFP)",
         "process": "Formal competitive bidding process required. Procurement will manage.",
         "category": "goods",
-        "documents": ["formal bid documents", "purchase order"]
+        "documents": [
+          "formal bid documents"
+        ]
       }
     ],
     "travel": [
@@ -382,9 +447,18 @@
         "method": "Travel Policy",
         "process": "City Manager approval required for P-Card travel use. Per diem limits apply.",
         "category": "service",
-        "documents": ["travel authorization form"]
+        "documents": [
+          "travel authorization form"
+        ]
       }
     ]
+  },
+  "rules": {
+    "_comment": "Toggles for optional processing rules that don't apply to every city. Disabled rules are omitted from the compliance prompt and their related intake fields are hidden.",
+    "faa": {
+      "_comment": "Only cities with an airport (AIP-funded or FAA-regulated purchases) need this.",
+      "enabled": true
+    }
   },
   "signing_authority": {
     "_comment": "Approval required based on contract amount and project type",

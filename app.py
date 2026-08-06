@@ -852,6 +852,11 @@ def get_is_admin():
     return jsonify({"is_admin": _is_admin(session.get("user_email", ""))})
 
 
+@app.route("/api/config/rules")
+def get_rules():
+    return jsonify({"faa_enabled": cfg.rule_enabled("faa")})
+
+
 # ── Admin config editor ───────────────────────────────────────
 
 def _admin_authorized() -> bool:

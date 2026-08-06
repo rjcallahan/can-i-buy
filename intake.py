@@ -16,7 +16,7 @@ def _policy_queries(data: dict) -> list[str]:
         queries.append("sole source justification requirements single vendor")
     if data.get("federal_funds") == "yes":
         queries.append("federal funds procurement requirements Buy American CFR 200")
-    if data.get("faa_governed") == "yes":
+    if data.get("faa_governed") == "yes" and cfg.rule_enabled("faa"):
         queries.append("FAA airport improvement program AIP procurement DBE Buy American")
     if item_type == "professional_services":
         queries.append("professional services insurance certificate conflict of interest")
@@ -35,6 +35,7 @@ def build_prompt(data: dict) -> str:
     is_bid          = cfg.requires_competitive_bid(item_type, amount)
     threshold_rule  = cfg.get_procurement_method(item_type, amount)
     city_name       = cfg.city_name() or "the City"
+    faa_enabled     = cfg.rule_enabled("faa")
 
     sole_source_block = ""
     if data.get("sole_source") == "yes":
@@ -76,6 +77,21 @@ def build_prompt(data: dict) -> str:
             "requirements for professional services, IT Director approval for technology."
         )
 
+    faa_rule = (
+        """FAA: FAA applicability is determined SOLELY by the "FAA-Governed Purchase" flag above —
+never infer it from the description, department, item type, or words like "airport".
+Airport department purchases are not automatically FAA-governed; only the flag decides.
+- If faa_governed=yes: populate faa_notes with a plain-English compliance summary of
+  applicable FAA requirements (Buy American, DBE, contract clauses, thresholds, etc.).
+  Do NOT change the verdict or procurement method.
+- If faa_governed=no: set faa_notes="" and do NOT mention FAA, Buy American, DBE, or any
+  other FAA-specific requirement anywhere in the response — not in summary, flags, or
+  next_steps — even if the request appears to relate to airport operations."""
+        if faa_enabled else
+        """FAA: This city's procurement does not include FAA-governed purchases. Always set
+faa_notes="" and never mention FAA, Buy American, or DBE anywhere in the response."""
+    )
+
     is_demo = data.get("demo", False)
     summary_instruction = (
         "2-3 sentences. If the purchase is P-Card eligible, assume it WILL be paid by P-Card — "
@@ -107,7 +123,7 @@ PROCUREMENT REQUEST:
 - Description/Justification: {data.get('description')}
 - Sole Source: {data.get('sole_source')}
 {sole_source_block}
-- FAA-Governed Purchase: {data.get('faa_governed', 'no')}
+{f"- FAA-Governed Purchase: {data.get('faa_governed', 'no')}" if faa_enabled else ""}
 - Involves Federal Funds: {data.get('federal_funds')}
 - P-Card Requested: {data.get('pcard')}
 - Attachments Provided: {data.get('attachments_count', 0)} file(s)
@@ -149,9 +165,7 @@ in the procurement_method field. Apply these rules strictly in order:
 SOLE SOURCE: If sole_source=yes, note that a sole source justification document will
 be required at submission. Do NOT change the verdict or flag as non-compliant now.
 
-FAA: If faa_governed=yes, populate faa_notes with a plain-English compliance summary
-of applicable FAA requirements (Buy American, DBE, contract clauses, thresholds, etc.).
-Do NOT change the verdict or procurement method. If faa_governed=no, set faa_notes="".
+{faa_rule}
 
 FEDERAL FUNDS: If federal_funds=yes, apply additional requirements from the policy
 above to flags and next_steps. Do NOT change the procurement method.
@@ -174,8 +188,15 @@ Use ONLY this list for the "required_documents" field and for "documents_needed"
 Do NOT add, infer, or mention any document not in this list — in particular, do NOT mention a
 service contract, a contract approval process, a scope of work, or an insurance certificate
 unless it appears in this list. Do NOT omit anything that does appear in this list.
+This restriction applies EVERYWHERE in your response, not just those two fields — the summary,
+flags, and next_steps must not state or imply that a contract will be created, signed, or
+negotiated unless "contract" or "agreement" appears in the list above.
 Exception: on the bid path (at/above threshold), do NOT require quotes — Procurement solicits
 bids formally instead.
+The purchase order (PO) is an OUTPUT that Procurement issues at the end of the process — it is
+never something the requester creates, submits, or provides. Do NOT list "purchase order" in
+required_documents or documents_needed, and do NOT instruct the requester to create, submit, or
+provide a purchase order anywhere in summary, flags, or next_steps.
 
 {"DEMO MODE — override normal verdict logic:" if is_demo else ""}
 {"""- Policy preview only. No documents submitted yet.

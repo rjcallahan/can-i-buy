@@ -34,11 +34,11 @@ def _required_documents_section(data: dict) -> str:
 
 class TestRequiredDocumentsSection:
 
-    def test_goods_tier_lists_quote_and_po_only(self):
+    def test_goods_tier_lists_quote_only(self):
         data = {**BASE_DATA, "item_type": "equipment", "amount": 9_000}
         section = _required_documents_section(data)
         assert 'category is "goods"' in section
-        assert "vendor quote, purchase order" in section
+        assert "vendor quote" in section
         assert "contract" not in section.split("required documents are exactly:")[1].split(".")[0]
 
     def test_service_tier_lists_contract_and_insurance(self):
@@ -58,9 +58,30 @@ class TestRequiredDocumentsSection:
         data = {**BASE_DATA, "item_type": "supplies", "amount": 300}
         section = _required_documents_section(data)
         assert 'category is "goods"' in section
-        assert "vendor quote, purchase order" in section
+        assert "vendor quote" in section
 
     def test_instructs_model_not_to_add_documents(self):
         data = {**BASE_DATA, "item_type": "equipment", "amount": 9_000}
         section = _required_documents_section(data)
         assert "Do NOT add, infer, or mention any document not in this list" in section
+
+
+class TestFaaRuleToggle:
+
+    def test_faa_rule_present_when_enabled(self):
+        data = {**BASE_DATA, "item_type": "equipment", "amount": 9_000}
+        with patch("policy_rag.query", return_value=""), \
+             patch("intake.cfg.rule_enabled", return_value=True):
+            prompt = intake.build_prompt(data)
+        assert "FAA-Governed Purchase" in prompt
+        assert 'FAA applicability is determined SOLELY by the "FAA-Governed Purchase" flag' in prompt
+
+    def test_faa_rule_and_field_omitted_when_disabled(self):
+        # A city with no airport shouldn't see the FAA flag or rule at all —
+        # not just a rule telling the model to ignore it.
+        data = {**BASE_DATA, "item_type": "equipment", "amount": 9_000}
+        with patch("policy_rag.query", return_value=""), \
+             patch("intake.cfg.rule_enabled", return_value=False):
+            prompt = intake.build_prompt(data)
+        assert "FAA-Governed Purchase" not in prompt
+        assert "does not include FAA-governed purchases" in prompt
