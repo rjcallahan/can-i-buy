@@ -2,9 +2,10 @@
 """
 Vector store interface for policy document retrieval.
 
-Documents are ingested from tenants/<TENANT>/documents (or DATA_DIR/documents on Railway)
-into a persistent ChromaDB collection. At analysis time, relevant policy passages are
-retrieved and injected into the Claude prompt instead of hardcoded rules.
+Documents are ingested from ../cities/<TENANT>/documents (shared with Ask2Buy,
+or DATA_DIR/documents on Railway) into a persistent ChromaDB collection. At
+analysis time, relevant policy passages are retrieved and injected into the
+Claude prompt instead of hardcoded rules.
 
 This makes the app city-agnostic: swap the documents and re-ingest, no code changes needed.
 """
@@ -19,9 +20,11 @@ _DATA_DIR    = os.getenv("DATA_DIR", os.path.join(_BASE_DIR, "data", _TENANT))
 _CHROMA_PATH = os.path.join(_DATA_DIR, "chroma_db")
 _REPO_CHROMA = os.path.join(_TENANT_DIR, "chroma_db")
 
-# Documents: Railway volume path takes priority, falls back to the tenant's repo folder
+# Documents: Railway volume path takes priority, falls back to the shared
+# cities/ folder one level up from this repo (see 2buy/cities/<TENANT>/documents),
+# which is also what Ask2Buy ingests from — a city's source documents live in one place.
 _VOLUME_DOCS = "/data/documents"
-_REPO_DOCS   = os.path.join(_TENANT_DIR, "documents")
+_REPO_DOCS   = os.path.join(_BASE_DIR, "..", "cities", _TENANT, "documents")
 _DOCS_PATH   = (
     os.getenv("DOCS_PATH")
     or (_VOLUME_DOCS if os.path.exists(_VOLUME_DOCS) else _REPO_DOCS)

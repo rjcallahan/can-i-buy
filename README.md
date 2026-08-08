@@ -36,7 +36,9 @@ Edit **`tenants/<city-slug>/config.json`** — this is the only file that needs 
 
 ## 3. Policy Documents & Vector Store
 
-- [ ] Add source PDFs under `tenants/<city-slug>/documents/<category>/`
+- [ ] Add source PDFs under `../cities/<city-slug>/documents/<category>/` — this
+      folder is shared with Ask2Buy (sibling to both apps under `2buy/`), so a
+      city's documents live in one place regardless of which app ingests them.
 - [ ] Build the vector store locally (requires Ollama with `nomic-embed-text` — the embed model is hardcoded to `localhost:11434`, so this step cannot run on Railway):
 
   ```bash
@@ -46,7 +48,8 @@ Edit **`tenants/<city-slug>/config.json`** — this is the only file that needs 
   ```
 
   This writes `tenants/<city-slug>/chroma_db/`.
-- [ ] Commit `tenants/<city-slug>/` (config, documents, chroma_db) and push:
+- [ ] Commit `tenants/<city-slug>/` (config, chroma_db — documents live outside
+      this repo, in the shared `cities/` folder) and push:
 
   ```bash
   git add tenants/<city-slug>/
