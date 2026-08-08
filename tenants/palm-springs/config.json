@@ -75,9 +75,7 @@
       "equipment",
       "professional_services",
       "construction",
-      "travel",
-      "it_equipment",
-      "it_software"
+      "travel"
     ],
     "purchase_cap": 5000,
     "single_transaction_limit": 2500
